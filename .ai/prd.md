@@ -1,5 +1,4 @@
-```markdown
-# Dokument wymagań produktu (PRD) - Fiszkomat AI
+# Dokumegitnt wymagań produktu (PRD) - Fiszkomat AI
 ## 1. Przegląd produktu
 
 Fiszkomat AI to aplikacja internetowa (webowa) zaprojektowana w celu usprawnienia procesu tworzenia cyfrowych fiszek edukacyjnych. Główną propozycją wartości produktu jest wykorzystanie sztucznej inteligencji (AI) do automatycznego generowania wysokiej jakości fiszek na podstawie tekstu dostarczonego przez użytkownika. Celem jest drastyczne skrócenie czasu potrzebnego na przygotowanie materiałów do nauki, a tym samym zachęcenie większej liczby osób do korzystania z efektywnej metody powtórek w odstępach (spaced repetition). Oprócz generowania fiszek przez AI, aplikacja oferuje podstawowe funkcje do manualnego tworzenia, edycji, usuwania i przeglądania fiszek w prostym trybie nauki. Wersja MVP (Minimum Viable Product) skupia się na walidacji kluczowej hipotezy: czy użytkownicy uznają automatyczne generowanie fiszek za wystarczająco wartościowe, aby regularnie korzystać z narzędzia.
@@ -195,4 +194,3 @@ Manualne tworzenie wysokiej jakości fiszek edukacyjnych na podstawie notatek, a
 -   Kryterium 2: Dominacja AI jako metody tworzenia
     -   Cel: Użytkownicy tworzą 75% wszystkich swoich fiszek z wykorzystaniem AI.
     -   Pomiar: System będzie rozróżniał fiszki stworzone manualnie od tych zaakceptowanych po sugestii AI. Metryka będzie liczona w skali całego produktu jako `(łączna_liczba_fiszek_z_AI / (łączna_liczba_fiszek_z_AI + łączna_liczba_fiszek_manualnych)) * 100%`.
-```
