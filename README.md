@@ -49,20 +49,21 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 docker-compose up -d
 ```
 
+4. **Create database structure (first time only or after `docker-compose down -v`):**
+
+```bash
+./create-supabase-db-structure.sh
+```
+
+This script waits for services to be healthy and applies application migrations after GoTrue creates the auth tables.
+
 This will start:
 
 - **Next.js app** on [http://localhost:3000](http://localhost:3000)
 - **Supabase Studio** (database UI) on [http://localhost:3001](http://localhost:3001)
 - **Supabase API Gateway** on [http://localhost:8000](http://localhost:8000)
 - **PostgreSQL database** on `localhost:5432`
-- **Email testing UI** (Inbucket) on [http://localhost:9000](http://localhost:9000)
-
-4. Access the services:
-
-- **Application**: [http://localhost:3000](http://localhost:3000)
-- **Supabase Studio**: [http://localhost:3001](http://localhost:3001) (manage database, auth, storage)
-- **Email inbox**: [http://localhost:9000](http://localhost:9000) (view registration/auth emails)
-- **Health check**: [http://localhost:3000/api/health](http://localhost:3000/api/health)
+- **Email testing UI** (Inbucket) on [http://localhost:9001](http://localhost:9001)
 
 5. Stop services:
 
@@ -75,6 +76,8 @@ docker-compose down
 ```bash
 docker-compose down -v
 ```
+
+**Note:** After removing volumes (`-v` flag), you must run `./create-supabase-db-structure.sh` again to recreate the database structure.
 
 ### Option 2: Local Development without Docker
 
@@ -172,11 +175,8 @@ The `docker-compose.yml` includes the following services:
 - **kong** - API Gateway routing requests to Supabase services
 - **auth** - GoTrue authentication server
 - **rest** - PostgREST automatic REST API for PostgreSQL
-- **realtime** - Realtime subscriptions and broadcasting
-- **storage** - File storage with image transformations
-- **meta** - Database metadata and management API
+- **meta** - Database metadata and management API for Studio
 - **studio** - Supabase Studio web UI
-- **imgproxy** - Image transformation service
 - **inbucket** - SMTP server for testing emails
 
 ### Troubleshooting Docker Compose

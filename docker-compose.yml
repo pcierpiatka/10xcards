@@ -15,14 +15,30 @@ services:
     env_file:
       - .env.local
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${ANON_KEY}
-      - SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      NODE_ENV: development
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
     depends_on:
       - db
       - kong
+    networks:
+      - app-network
+
+  # PostgreSQL Meta - Manages Postgres metadata for Studio
+  meta:
+    image: supabase/postgres-meta:v0.68.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: "5432"
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD:  ${POSTGRES_PASSWORD}
     networks:
       - app-network
 
@@ -40,7 +56,7 @@ services:
     env_file:
       - .env.local
     environment:
-      STUDIO_PG_META_URL: http://db:5432
+      STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DEFAULT_ORGANIZATION_NAME: "10xCards"
       DEFAULT_PROJECT_NAME: "10xCards Dev"
@@ -50,6 +66,7 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
     depends_on:
       - db
+      - meta
       - kong
     networks:
       - app-network
@@ -58,7 +75,6 @@ services:
   kong:
     image: kong:2.8.1
     restart: unless-stopped
-    entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
     ports:
       - "8000:8000"
       - "8443:8443"
@@ -66,7 +82,7 @@ services:
       - .env.local
     environment:
       KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
       KONG_DNS_ORDER: LAST,A,CNAME
       KONG_PLUGINS: request-transformer,cors,key-auth,acl
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
@@ -74,7 +90,7 @@ services:
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
     volumes:
-      - ./docker/volumes/api/kong.yml:/home/kong/temp.yml:ro
+      - ./docker/volumes/api/kong.yml:/usr/local/kong/declarative/kong.yml:ro
     depends_on:
       - db
       - rest
