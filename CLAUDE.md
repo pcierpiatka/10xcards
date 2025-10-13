@@ -28,12 +28,14 @@ Refer to `.ai/prd.md` for detailed product requirements document (in Polish), in
 See `.ai/tech-stack.md` for the complete stack documentation.
 
 ### Before starting work
+
 - Write a plan to .claude/tasks/TASK_NAME.md
 - The plan should include your approach and broken-down tasks
 - Think MVP - don't over-plan it
 - **Ask me to review before coding. Wait for approval.**
 
 ### While implementing
+
 - Update the plan as you work
 - Document what you actually did vs. what you planned
 - **If the plan needs significant changes, flag it and get re-approval**
@@ -160,6 +162,7 @@ Target deployment: DigitalOcean with Docker containers
 ## Important Constraints (MVP Scope)
 
 Out of scope for MVP:
+
 - Advanced spaced repetition algorithms (simple random order only)
 - File uploads (PDF, DOCX, etc.)
 - Flashcard organization (decks, categories, tags)

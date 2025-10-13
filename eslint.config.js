@@ -57,5 +57,5 @@ export default tseslint.config(
   baseConfig,
   reactConfig,
   ...compat.extends("next/core-web-vitals"),
-  eslintPluginPrettier,
+  eslintPluginPrettier
 );

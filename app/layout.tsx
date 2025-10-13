@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "10x Cards",
   description: "AI-powered flashcard generator",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.svg",
   },
 };
 
