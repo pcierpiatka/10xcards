@@ -5,6 +5,7 @@
 Aplikacja Fiszek AI to webowa platforma edukacyjna, która wykorzystuje sztuczną inteligencję do automatycznego generowania fiszek edukacyjnych na podstawie materiałów dostarczonych przez użytkownika. Aplikacja umożliwia użytkownikom szybkie tworzenie wysokiej jakości fiszek bez czasochłonnej pracy manualnej, a następnie naukę metodą powtórek rozłożonych w czasie (spaced repetition).
 
 Główne funkcjonalności MVP obejmują:
+
 - Generowanie 8-12 fiszek z tekstu wejściowego (1000-10000 znaków) przy użyciu OpenAI GPT-4o-mini
 - System preview i selekcji wygenerowanych fiszek przed zapisem
 - Manualne tworzenie, edycję i usuwanie fiszek
@@ -19,12 +20,14 @@ Produkt dedykowany jest wszystkim osobom pragnącym utrwalić wiedzę za pomocą
 Osoby uczące się nowych umiejętności lub wiedzy często znają efektywność metody powtórek rozłożonych w czasie (spaced repetition) z wykorzystaniem fiszek. Jednak główną barierą w adopcji tej metody jest czasochłonny proces tworzenia wysokiej jakości fiszek.
 
 Kluczowe problemy:
+
 - Manualne tworzenie fiszek wymaga znacznego nakładu czasu i wysiłku
 - Formulowanie dobrych pytań i odpowiedzi wymaga umiejętności pedagogicznych
 - Przekształcanie materiałów źródłowych (notatek, artykułów, podręczników) w format fiszek jest żmudne
 - Użytkownicy często rezygnują z nauki fiszkami mimo świadomości jej efektywności
 
 Konsekwencje:
+
 - Mniejsza efektywność nauki
 - Rezygnacja z narzędzi opartych na spaced repetition
 - Frustracja związana z czasem potrzebnym na przygotowanie materiałów
@@ -36,6 +39,7 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 3.1 Autentykacja i zarządzanie kontem
 
 3.1.1 Rejestracja użytkownika
+
 - Formularz rejestracji z polami: email i hasło
 - Walidacja formatu email
 - Walidacja wymagań hasła (minimalna długość)
@@ -43,18 +47,21 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 - Automatyczne logowanie po rejestracji
 - Przekierowanie do Dashboard po pomyślnej rejestracji
 
-3.1.2 Logowanie użytkownika
+  3.1.2 Logowanie użytkownika
+
 - Formularz logowania z polami: email i hasło
 - Generowanie JWT token przy pomyślnym logowaniu
 - Przekierowanie do Dashboard po zalogowaniu
 - Komunikat błędu przy nieprawidłowych danych
 
-3.1.3 Wylogowanie
+  3.1.3 Wylogowanie
+
 - Przycisk wylogowania dostępny w navbar na Dashboard
 - Usunięcie JWT token
 - Przekierowanie do strony logowania
 
-3.1.4 Bezpieczeństwo
+  3.1.4 Bezpieczeństwo
+
 - Implementacja Row Level Security (RLS) - użytkownik ma dostęp tylko do własnych fiszek
 - Autentykacja oparta na JWT token
 - Połączenia tylko przez HTTPS
@@ -62,42 +69,47 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 3.2 Generowanie fiszek przez AI
 
 3.2.1 Wprowadzanie tekstu źródłowego
+
 - Pole textarea z walidacją zakresu 1000-10000 znaków
 - Live counter wyświetlający "X/10000 znaków"
 - Przycisk "Generuj fiszki z AI" disabled i wyszarzony gdy liczba znaków poza zakresem
 - Komunikat walidacji wyświetlany gdy liczba znaków nieprawidłowa
 - Enter i nowe linie liczone jako znaki
 
-3.2.2 Proces generowania
+  3.2.2 Proces generowania
+
 - Loading state z komunikatem "Generuję fiszki..." i spinnerem/animacją CSS
 - Wykorzystanie OpenAI GPT-4o-mini
 - Generowanie 8-12 fiszek w formacie JSON
 - Czas generowania: 5-15 sekund
 - Brak możliwości anulowania podczas generowania
 
-3.2.3 Struktura promptu AI
+  3.2.3 Struktura promptu AI
+
 - Rola: Ekspert tworzenia fiszek edukacyjnych
 - Zadanie: Generowanie 8-12 fiszek na podstawie tekstu
 - Format: JSON array z obiektami zawierającymi pola "front" i "back"
 - Zasady:
-    - Przód maksymalnie 300 znaków - konkretne, zamknięte pytanie
-    - Tył maksymalnie 600 znaków - pełna odpowiedź
-    - Unikanie pytań otwartych typu "Co to jest...", "Wymień..."
-    - Brak duplikatów
+  - Przód maksymalnie 300 znaków - konkretne, zamknięte pytanie
+  - Tył maksymalnie 600 znaków - pełna odpowiedź
+  - Unikanie pytań otwartych typu "Co to jest...", "Wymień..."
+  - Brak duplikatów
 - Output: czysty JSON bez markdown
 
-3.2.4 Tracking generowania
+  3.2.4 Tracking generowania
+
 - Zapis każdego generowania do tabeli ai_generation_sessions:
-    - user_id
-    - input_text
-    - output_json
-    - created_at
-    - generated_count (liczba wygenerowanych fiszek)
-    - accepted_count (liczba zaakceptowanych przez użytkownika)
+  - user_id
+  - input_text
+  - output_json
+  - created_at
+  - generated_count (liczba wygenerowanych fiszek)
+  - accepted_count (liczba zaakceptowanych przez użytkownika)
 
 ### 3.3 Preview i akceptacja fiszek AI
 
 3.3.1 Ekran Preview
+
 - Lista 8-12 wygenerowanych fiszek
 - Każda fiszka wyświetla przód i tył
 - Checkbox przy każdej fiszcze (domyślnie wszystkie zaznaczone)
@@ -105,7 +117,8 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 - Przycisk "Wróć" w górnym rogu ekranu
 - Brak navbar
 
-3.3.2 Akcje użytkownika
+  3.3.2 Akcje użytkownika
+
 - Możliwość odznaczania/zaznaczania poszczególnych fiszek
 - Przycisk "Zaakceptuj zaznaczone" - zapisuje wybrane fiszki do bazy danych
 - Przycisk "Anuluj" - powrót do Dashboard bez zapisywania
@@ -114,10 +127,11 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 3.4 Manualne tworzenie fiszek
 
 3.4.1 Dodawanie fiszki
+
 - Przycisk "+ Dodaj fiszkę ręcznie" umieszczony na górze listy fiszek
 - Modal z dwoma polami tekstowymi:
-    - Przód (required, min 1 znak, max 300 znaków)
-    - Tył (required, min 1 znak, max 600 znaków)
+  - Przód (required, min 1 znak, max 300 znaków)
+  - Tył (required, min 1 znak, max 600 znaków)
 - Live counter znaków pod każdym polem
 - Przyciski: "Zapisz" i "Anuluj"
 - Po zapisaniu: zamknięcie modala i wyświetlenie fiszki na liście
@@ -126,38 +140,42 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 3.5 Przeglądanie fiszek
 
 3.5.1 Dashboard - struktura
+
 - Navbar zawierający:
-    - Logo aplikacji
-    - Link "Moje Fiszki"
-    - Przycisk "Rozpocznij naukę"
-    - Przycisk wylogowania
+  - Logo aplikacji
+  - Link "Moje Fiszki"
+  - Przycisk "Rozpocznij naukę"
+  - Przycisk wylogowania
 - Pole textarea z przyciskiem "Generuj fiszki z AI"
 - Lista fiszek poniżej
 
-3.5.2 Lista fiszek - wyświetlanie
+  3.5.2 Lista fiszek - wyświetlanie
+
 - Format: karty/kafelki
 - Każda karta wyświetla:
-    - Przód fiszki (większy font)
-    - Tył fiszki (mniejszy font)
-    - Ikony w prawym górnym rogu: edycja i usunięcie
+  - Przód fiszki (większy font)
+  - Tył fiszki (mniejszy font)
+  - Ikony w prawym górnym rogu: edycja i usunięcie
 - Sortowanie: created_at ASC (najstarsze pierwsze)
 - Paginacja: 20 fiszek na stronę (bez możliwości zmiany)
 - Kontrolki paginacji: przyciski "Poprzednia"/"Następna" oraz numer strony
 
-3.5.3 Empty state
+  3.5.3 Empty state
+
 - Wyświetlany gdy użytkownik ma 0 fiszek
 - Zawiera: pole textarea, przycisk "Wygeneruj fiszki z AI" i komunikat "Nie masz jeszcze żadnych fiszek"
 
 ### 3.6 Edycja fiszek
 
 3.6.1 Proces edycji
+
 - Kliknięcie ikony edycji otwiera modal
 - Modal zawiera dwa pola tekstowe wypełnione aktualnymi wartościami
 - Walidacja:
-    - Oba pola required
-    - Przód: max 300 znaków
-    - Tył: max 600 znaków
-    - Live counter znaków
+  - Oba pola required
+  - Przód: max 300 znaków
+  - Tył: max 600 znaków
+  - Live counter znaków
 - Przyciski: "Zapisz" i "Anuluj"
 - Po zapisaniu: toast notification "Fiszka zaktualizowana" (znika po 1 sekundzie)
 - Brak wsparcia AI przy edycji
@@ -165,48 +183,52 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 3.7 Usuwanie fiszek
 
 3.7.1 Proces usuwania
+
 - Kliknięcie ikony usunięcia otwiera modal potwierdzenia
 - Modal zawiera:
-    - Komunikat: "Czy na pewno chcesz usunąć tę fiszkę?"
-    - Podgląd przodu fiszki
-    - Przyciski: "Usuń" (czerwony) i "Anuluj"
+  - Komunikat: "Czy na pewno chcesz usunąć tę fiszkę?"
+  - Podgląd przodu fiszki
+  - Przyciski: "Usuń" (czerwony) i "Anuluj"
 - Po potwierdzeniu:
-    - Hard delete z bazy danych (brak możliwości cofnięcia)
-    - Toast notification "Fiszka usunięta"
-    - Natychmiastowe usunięcie z listy
+  - Hard delete z bazy danych (brak możliwości cofnięcia)
+  - Toast notification "Fiszka usunięta"
+  - Natychmiastowe usunięcie z listy
 
 ### 3.8 Sesja nauki
 
 3.8.1 Rozpoczęcie sesji
+
 - Przycisk "Rozpocznij naukę" w headerze Dashboard
 - Gdy użytkownik ma 0 fiszek: przycisk disabled z tooltipem "Dodaj fiszki aby rozpocząć naukę"
 - Sesja obejmuje wszystkie zaakceptowane fiszki użytkownika
 
-3.8.2 Interfejs sesji nauki
+  3.8.2 Interfejs sesji nauki
+
 - Pełnoekranowy widok (bez navbar)
 - Progress bar na górze: "Fiszka X/Y"
 - Przycisk "Zakończ" (red outline) w górnym rogu - zawsze dostępny
 - Wyświetlanie przodu fiszki
 - Przycisk "Pokaż tył"
 - Po kliknięciu: wyświetlenie tyłu fiszki
-- Przyciski na dole:
-    - "Zakończ" - powrót do Dashboard
-    - "Następna" - przejście do następnej fiszki
+- Przyciski na dole: - "Zakończ" - powrót do Dashboard - "Następna" - przejście do następnej fiszki
 
-3.8.3 Algorytm kolejności (Round-robin MVP)
+  3.8.3 Algorytm kolejności (Round-robin MVP)
+
 - Pobranie wszystkich fiszek użytkownika
 - Sortowanie po created_at ASC
 - Wyświetlanie po kolei od najstarszej
 - Brak stanu między sesjami - każda nowa sesja zaczyna od początku
 - Przyciski "Pamiętam"/"Nie pamiętam" nie wpływają na kolejność w MVP
 
-3.8.4 Zakończenie sesji
+  3.8.4 Zakończenie sesji
+
 - Po ostatniej fiszcze + kliknięcie "Następna": automatyczne zakończenie
 - Ekran: "Ukończono! Przejrzałeś X fiszek"
 - Przycisk "Wróć do listy"
 - Przy jednej fiszcze: również kończymy po "Następna" (bez zapętlania)
 
-3.8.5 Przerwanie sesji
+  3.8.5 Przerwanie sesji
+
 - Kliknięcie "Zakończ" w trakcie sesji otwiera modal potwierdzenia
 - Modal: "Zakończyć naukę? Postęp nie zostanie zapisany"
 - Przyciski: "Tak, zakończ" i "Kontynuuj"
@@ -214,17 +236,20 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 3.9 Obsługa błędów i stanów ładowania
 
 3.9.1 Komunikaty błędów
+
 - Wszystkie błędy prezentowane jako generyczne komunikaty przyjazne użytkownikowi
 - Przykład: "Nie udało się wygenerować fiszek, spróbuj ponownie"
 - Brak technicznych szczegółów (stacktrace, error codes) dla użytkownika
 - Wszystkie błędy logowane do systemu logów na backendzie
 
-3.9.2 Loading states
+  3.9.2 Loading states
+
 - Spinner z komunikatem podczas generowania AI
 - Opcjonalnie: zabawna animacja CSS
 - Loading indicator przy wszystkich operacjach asynchronicznych
 
-3.9.3 Notyfikacje
+  3.9.3 Notyfikacje
+
 - Toast notifications znikające po 1 sekundzie
 - Przykłady: "Fiszka zaktualizowana", "Fiszka usunięta"
 - Pozycjonowanie: konsystentne w aplikacji
@@ -240,23 +265,28 @@ Aplikacja Fiszek AI rozwiązuje ten problem poprzez automatyzację procesu tworz
 ### 4.1 Poza zakresem MVP
 
 4.1.1 Algorytmy powtórek
+
 - Własny, zaawansowany algorytm powtórek (jak SuperMemo, Anki)
 - MVP wykorzystuje prosty round-robin z warstwą abstrakcji dla przyszłej rozbudowy
 
-4.1.2 Import i formaty plików
+  4.1.2 Import i formaty plików
+
 - Import wielu formatów (PDF, DOCX, itp.)
 - Na MVP tylko kopiuj-wklej tekstu
 
-4.1.3 Funkcje społecznościowe
+  4.1.3 Funkcje społecznościowe
+
 - Współdzielenie zestawów fiszek między użytkownikami
 - Publiczne biblioteki fiszek
 - Komentarze i oceny
 
-4.1.4 Integracje
+  4.1.4 Integracje
+
 - Integracje z innymi platformami edukacyjnymi
 - API dla zewnętrznych aplikacji
 
-4.1.5 Aplikacje natywne
+  4.1.5 Aplikacje natywne
+
 - Aplikacje mobilne (iOS, Android)
 - Na początek tylko web
 
@@ -268,6 +298,7 @@ Opis:
 Jako nowy użytkownik chcę zarejestrować konto za pomocą adresu email i hasła, aby móc korzystać z aplikacji i przechowywać swoje fiszki.
 
 Kryteria akceptacji:
+
 - Formularz rejestracji zawiera pola: email i hasło
 - Email jest walidowany pod kątem poprawnego formatu
 - Hasło jest walidowane pod kątem minimalnej długości
@@ -283,6 +314,7 @@ Opis:
 Jako zarejestrowany użytkownik chcę zalogować się do aplikacji przy użyciu mojego emaila i hasła, aby uzyskać dostęp do moich fiszek.
 
 Kryteria akceptacji:
+
 - Formularz logowania zawiera pola: email i hasło
 - Po pomyślnym logowaniu generowany jest JWT token
 - Po zalogowaniu następuje przekierowanie do Dashboard
@@ -296,6 +328,7 @@ Opis:
 Jako zalogowany użytkownik chcę móc się wylogować z aplikacji, aby zabezpieczyć swoje konto przy korzystaniu z urządzenia współdzielonego.
 
 Kryteria akceptacji:
+
 - Przycisk wylogowania jest widoczny w navbar na Dashboard
 - Po kliknięciu przycisku JWT token jest usuwany
 - Następuje przekierowanie do strony logowania
@@ -307,6 +340,7 @@ Opis:
 Jako użytkownik chcę wkleić tekst źródłowy do pola tekstowego i zobaczyć walidację, aby upewnić się, że tekst ma odpowiednią długość przed wygenerowaniem fiszek.
 
 Kryteria akceptacji:
+
 - Pole textarea jest dostępne na Dashboard
 - Live counter wyświetla aktualną liczbę znaków w formacie "X/10000 znaków"
 - Counter aktualizuje się w czasie rzeczywistym podczas wpisywania
@@ -322,6 +356,7 @@ Opis:
 Jako użytkownik chcę wygenerować fiszki z mojego tekstu za pomocą AI, aby zaoszczędzić czas na manualnym tworzeniu.
 
 Kryteria akceptacji:
+
 - Po kliknięciu "Generuj fiszki z AI" wyświetla się loading state
 - Loading state zawiera komunikat "Generuję fiszki..." i spinner/animację
 - Żądanie jest wysyłane do OpenAI GPT-4o-mini
@@ -338,6 +373,7 @@ Opis:
 Jako użytkownik chcę przejrzeć wygenerowane przez AI fiszki i wybrać tylko te, które chcę zapisać, aby mieć kontrolę nad jakością mojej kolekcji.
 
 Kryteria akceptacji:
+
 - Ekran Preview wyświetla listę 8-12 wygenerowanych fiszek
 - Każda fiszka pokazuje zarówno przód jak i tył
 - Każda fiszka ma checkbox (domyślnie zaznaczony)
@@ -356,6 +392,7 @@ Opis:
 Jako użytkownik chcę ręcznie utworzyć fiszkę, aby mieć możliwość dodania specyficznych pytań, których AI nie wygenerowało.
 
 Kryteria akceptacji:
+
 - Przycisk "+ Dodaj fiszkę ręcznie" jest widoczny na górze listy fiszek
 - Po kliknięciu otwiera się modal z dwoma polami tekstowymi
 - Pole "Przód" ma walidację: required, min 1 znak, max 300 znaków
@@ -374,6 +411,7 @@ Opis:
 Jako użytkownik chcę przeglądać moją kolekcję fiszek w czytelny sposób, aby łatwo znajdować i zarządzać nimi.
 
 Kryteria akceptacji:
+
 - Dashboard wyświetla listę fiszek w formacie kart/kafelków
 - Każda karta pokazuje przód fiszki (większy font) i tył fiszki (mniejszy font)
 - Ikony edycji i usunięcia są widoczne w prawym górnym rogu każdej karty
@@ -391,6 +429,7 @@ Opis:
 Jako nowy użytkownik bez fiszek chcę zobaczyć informacyjny ekran, który zachęci mnie do utworzenia pierwszych fiszek.
 
 Kryteria akceptacji:
+
 - Gdy użytkownik ma 0 fiszek, wyświetla się empty state
 - Empty state zawiera pole textarea
 - Empty state zawiera przycisk "Wygeneruj fiszki z AI"
@@ -404,6 +443,7 @@ Opis:
 Jako użytkownik chcę edytować treść mojej fiszki, aby poprawić błędy lub zaktualizować informacje.
 
 Kryteria akceptacji:
+
 - Kliknięcie ikony edycji otwiera modal
 - Modal zawiera dwa pola tekstowe: "Przód" i "Tył"
 - Pola są wypełnione aktualnymi wartościami fiszki
@@ -422,6 +462,7 @@ Opis:
 Jako użytkownik chcę usunąć niepotrzebną fiszkę z możliwością potwierdzenia akcji, aby uniknąć przypadkowego usunięcia.
 
 Kryteria akceptacji:
+
 - Kliknięcie ikony usunięcia otwiera modal potwierdzenia
 - Modal wyświetla komunikat "Czy na pewno chcesz usunąć tę fiszkę?"
 - Modal pokazuje podgląd przodu fiszki
@@ -438,6 +479,7 @@ Opis:
 Jako użytkownik z fiszkami chcę rozpocząć sesję nauki, aby przećwiczyć materiał metodą powtórek.
 
 Kryteria akceptacji:
+
 - Przycisk "Rozpocznij naukę" jest widoczny w headerze Dashboard
 - Gdy użytkownik ma 0 fiszek, przycisk jest disabled
 - Tooltip "Dodaj fiszki aby rozpocząć naukę" wyświetla się po najechaniu na disabled button
@@ -453,6 +495,7 @@ Opis:
 Jako użytkownik w sesji nauki chcę zobaczyć przód fiszki, spróbować odpowiedzieć, a następnie sprawdzić tył, aby uczyć się aktywnie.
 
 Kryteria akceptacji:
+
 - Na górze ekranu wyświetlany jest progress "Fiszka X/Y"
 - Przycisk "Zakończ" (red outline) jest widoczny w górnym rogu
 - Wyświetlany jest przód aktualnej fiszki
@@ -468,6 +511,7 @@ Opis:
 Jako użytkownik w sesji nauki chcę przejść do następnej fiszki po przejrzeniu bieżącej, aby kontynuować naukę.
 
 Kryteria akceptacji:
+
 - Przycisk "Następna" jest aktywny po pokazaniu tyłu fiszki
 - Kliknięcie "Następna" ładuje następną fiszkę z kolejki (round-robin)
 - Progress "Fiszka X/Y" aktualizuje się
@@ -481,6 +525,7 @@ Opis:
 Jako użytkownik kończący sesję nauki chcę zobaczyć podsumowanie i wrócić do Dashboard, aby mieć poczucie ukończenia.
 
 Kryteria akceptacji:
+
 - Po ostatniej fiszcze i kliknięciu "Następna" sesja kończy się automatycznie
 - Wyświetla się ekran "Ukończono! Przejrzałeś X fiszek"
 - Przycisk "Wróć do listy" jest widoczny
@@ -494,6 +539,7 @@ Opis:
 Jako użytkownik w trakcie sesji nauki chcę móc przerwać naukę w dowolnym momencie, z potwierdzeniem aby uniknąć przypadkowego przerwania.
 
 Kryteria akceptacji:
+
 - Przycisk "Zakończ" (red outline) jest dostępny przez cały czas sesji
 - Kliknięcie "Zakończ" otwiera modal potwierdzenia
 - Modal wyświetla komunikat "Zakończyć naukę? Postęp nie zostanie zapisany"
@@ -508,6 +554,7 @@ Opis:
 Jako użytkownik chcę zobaczyć przyjazny komunikat gdy generowanie fiszek przez AI nie powiedzie się, aby zrozumieć problem i wiedzieć co dalej.
 
 Kryteria akceptacji:
+
 - Gdy żądanie do API OpenAI zawiedzie, wyświetla się komunikat błędu
 - Komunikat błędu jest generyczny i przyjazny: "Nie udało się wygenerować fiszek, spróbuj ponownie"
 - Brak technicznych szczegółów (stacktrace, error codes) dla użytkownika
@@ -522,6 +569,7 @@ Opis:
 Jako użytkownik wypełniający formularz (dodawanie/edycja fiszki) chcę widzieć na bieżąco czy nie przekraczam limitu znaków, aby uniknąć błędów przy zapisie.
 
 Kryteria akceptacji:
+
 - Live counter znaków wyświetla się pod polami "Przód" i "Tył"
 - Counter aktualizuje się w czasie rzeczywistym podczas wpisywania
 - Counter pokazuje format "X/300" dla przodu i "X/600" dla tyłu
@@ -536,6 +584,7 @@ Opis:
 Jako użytkownik chcę mieć pewność, że widzę tylko swoje fiszki i nikt inny nie ma dostępu do mojej kolekcji, aby zachować prywatność danych.
 
 Kryteria akceptacji:
+
 - Użytkownik widzi tylko fiszki powiązane z jego user_id
 - Zapytania do bazy danych automatycznie filtrują po user_id
 - Row Level Security (RLS) jest aktywne w bazie danych
@@ -549,6 +598,7 @@ Opis:
 Jako użytkownik z dużą liczbą fiszek chcę nawigować między stronami, aby przeglądać całą kolekcję w wygodny sposób.
 
 Kryteria akceptacji:
+
 - Lista fiszek wyświetla maksymalnie 20 fiszek na stronę
 - Kontrolki paginacji są widoczne gdy liczba fiszek przekracza 20
 - Przycisk "Poprzednia" pozwala przejść do poprzedniej strony

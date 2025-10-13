@@ -3,10 +3,13 @@ Jesteś doświadczonym menedżerem produktu, którego zadaniem jest pomoc w stwo
 Prosimy o uważne zapoznanie się z poniższymi informacjami:
 
 <project_description>
+
 ### Główny problem
+
 Manualne tworzenie wysokiej jakości fiszek edukacyjnych jest czasochłonne, co zniechęca do korzystania z efektywnej metody nauki jaką jest spaced repetition.
 
 ### Najmniejszy zestaw funkcjonalności
+
 - Generowanie fiszek przez AI na podstawie wprowadzonego tekstu (kopiuj-wklej)
 - Manualne tworzenie fiszek
 - Przeglądanie, edycja i usuwanie fiszek
@@ -14,6 +17,7 @@ Manualne tworzenie wysokiej jakości fiszek edukacyjnych jest czasochłonne, co 
 - Integracja fiszek z gotowym algorytmem powtórek
 
 ### Co NIE wchodzi w zakres MVP
+
 - Własny, zaawansowany algorytm powtórek (jak SuperMemo, Anki)
 - Import wielu formatów (PDF, DOCX, itp.)
 - Współdzielenie zestawów fiszek między użytkownikami
@@ -21,12 +25,14 @@ Manualne tworzenie wysokiej jakości fiszek edukacyjnych jest czasochłonne, co 
 - Aplikacje mobilne (na początek tylko web)
 
 ### Kryteria sukcesu
+
 - 75% fiszek wygenerowanych przez AI jest akceptowane przez użytkownika
 - Użytkownicy tworzą 75% fiszek z wykorzystaniem AI
-</project_description>
+  </project_description>
 
 Przeanalizuj dostarczone informacje, koncentrując się na aspektach istotnych dla tworzenia PRD. Rozważ następujące kwestie:
 <prd_analysis>
+
 1. Zidentyfikuj główny problem, który produkt ma rozwiązać.
 2. Określ kluczowe funkcjonalności MVP.
 3. Rozważ potencjalne historie użytkownika i ścieżki korzystania z produktu.
@@ -47,6 +53,7 @@ Na podstawie analizy wygeneruj listę 10 pytań i zaleceń w formie łączonej (
 Wymień tutaj swoje pytania i zalecenia, ponumerowane dla jasności:
 
 Przykładowo:
+
 1. Czy już od startu projektu planujesz wprowadzenie płatnych subskrypcji?
 
 Rekomendacja: Pierwszy etap projektu może skupić się na funkcjonalnościach darmowych, aby przyciągnąć użytkowników, a płatne funkcje można wprowadzić w późniejszym etapie.

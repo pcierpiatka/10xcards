@@ -60,9 +60,7 @@ export default function Welcome() {
                   <span className="font-mono bg-blue-900/50 px-3 py-1.5 rounded-lg text-blue-200 shadow-sm">
                     shadcn/ui
                   </span>
-                  <span className="text-blue-100/90">
-                    - Component library
-                  </span>
+                  <span className="text-blue-100/90">- Component library</span>
                 </li>
               </ul>
             </div>
@@ -88,9 +86,7 @@ export default function Welcome() {
                   <span className="font-mono bg-blue-900/50 px-3 py-1.5 rounded-lg text-blue-200 shadow-sm">
                     Husky + Lint-staged
                   </span>
-                  <span className="text-blue-100/90">
-                    - Pre-commit hooks
-                  </span>
+                  <span className="text-blue-100/90">- Pre-commit hooks</span>
                 </li>
               </ul>
             </div>

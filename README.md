@@ -32,6 +32,7 @@ cp .env.example .env
 ```
 
 Edit `.env` and add your:
+
 - Supabase URL and anon key
 - OpenRouter API key
 
