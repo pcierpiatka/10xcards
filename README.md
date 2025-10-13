@@ -14,10 +14,71 @@ AI-powered flashcard generator for efficient learning.
 
 ## Prerequisites
 
+### For Docker Compose (Recommended)
+
+- Docker and Docker Compose
+- (Optional) Node.js v22 for running tests/linting locally
+
+### For Local Development
+
 - Node.js v22 (as specified in `.nvmrc`)
 - npm (comes with Node.js)
+- A Supabase project (cloud or self-hosted)
 
 ## Getting Started
+
+### Option 1: Local Development with Docker Compose (Recommended)
+
+This option runs Next.js and a full Supabase stack locally in Docker containers.
+
+1. Copy the environment file:
+
+```bash
+cp .env.local.example .env.local
+```
+
+2. (Optional) Edit `.env.local` and add your OpenRouter API key if you want to test AI generation:
+
+```bash
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+```
+
+3. Start all services with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+This will start:
+
+- **Next.js app** on [http://localhost:3000](http://localhost:3000)
+- **Supabase Studio** (database UI) on [http://localhost:3001](http://localhost:3001)
+- **Supabase API Gateway** on [http://localhost:8000](http://localhost:8000)
+- **PostgreSQL database** on `localhost:5432`
+- **Email testing UI** (Inbucket) on [http://localhost:9000](http://localhost:9000)
+
+4. Access the services:
+
+- **Application**: [http://localhost:3000](http://localhost:3000)
+- **Supabase Studio**: [http://localhost:3001](http://localhost:3001) (manage database, auth, storage)
+- **Email inbox**: [http://localhost:9000](http://localhost:9000) (view registration/auth emails)
+- **Health check**: [http://localhost:3000/api/health](http://localhost:3000/api/health)
+
+5. Stop services:
+
+```bash
+docker-compose down
+```
+
+6. Stop and remove all data (including database):
+
+```bash
+docker-compose down -v
+```
+
+### Option 2: Local Development without Docker
+
+This requires a running Supabase instance (cloud or self-hosted).
 
 1. Install dependencies:
 
@@ -43,8 +104,6 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
-
-Health check endpoint available at [http://localhost:3000/api/health](http://localhost:3000/api/health).
 
 4. Build for production:
 
@@ -103,6 +162,58 @@ The project uses:
 - **TypeScript strict mode** - Enhanced type safety
 
 Pre-commit hooks automatically run ESLint and Prettier before each commit.
+
+## Docker Compose Architecture
+
+The `docker-compose.yml` includes the following services:
+
+- **app** - Next.js development server with hot-reload
+- **db** - PostgreSQL 15 database with Supabase extensions
+- **kong** - API Gateway routing requests to Supabase services
+- **auth** - GoTrue authentication server
+- **rest** - PostgREST automatic REST API for PostgreSQL
+- **realtime** - Realtime subscriptions and broadcasting
+- **storage** - File storage with image transformations
+- **meta** - Database metadata and management API
+- **studio** - Supabase Studio web UI
+- **imgproxy** - Image transformation service
+- **inbucket** - SMTP server for testing emails
+
+### Troubleshooting Docker Compose
+
+**View logs for all services:**
+
+```bash
+docker-compose logs -f
+```
+
+**View logs for specific service:**
+
+```bash
+docker-compose logs -f app
+docker-compose logs -f db
+```
+
+**Restart a specific service:**
+
+```bash
+docker-compose restart app
+```
+
+**Rebuild containers after code changes:**
+
+```bash
+docker-compose up -d --build
+```
+
+**Access Supabase Studio:**
+Visit [http://localhost:3001](http://localhost:3001) to manage your database, view tables, run SQL queries, and manage authentication.
+
+**Connect to PostgreSQL directly:**
+
+```bash
+psql postgresql://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres
+```
 
 ## Deployment
 
