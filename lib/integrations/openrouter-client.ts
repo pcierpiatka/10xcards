@@ -9,10 +9,6 @@
 
 import type { AiProposalDto } from "@/lib/dto/types";
 
-interface GenerateFlashcardsOptions {
-  inputText: string;
-}
-
 /**
  * Mock OpenRouter client that generates random flashcard proposals
  * Returns 4-7 flashcards with randomized content

@@ -127,7 +127,8 @@ export class AiGenerationService {
         user_id: data.userId,
         input_text: data.inputText,
         model_name: MODEL_NAME,
-        generated_proposals: data.proposals as unknown as Database["public"]["Tables"]["ai_generations"]["Insert"]["generated_proposals"],
+        generated_proposals:
+          data.proposals as unknown as Database["public"]["Tables"]["ai_generations"]["Insert"]["generated_proposals"],
         generated_count: data.proposals.length,
         duration_ms: data.durationMs,
       })

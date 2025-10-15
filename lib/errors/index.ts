@@ -46,7 +46,7 @@ export class ValidationError extends AppError {
  * throw new AuthenticationError("Invalid or expired token");
  */
 export class AuthenticationError extends AppError {
-  constructor(message: string = "Musisz być zalogowany") {
+  constructor(message = "Musisz być zalogowany") {
     super(message, 401, "AUTHENTICATION_ERROR");
   }
 }
@@ -61,7 +61,7 @@ export class AuthenticationError extends AppError {
  * throw new AuthorizationError("Flashcard not found");
  */
 export class AuthorizationError extends AppError {
-  constructor(message: string = "Nie znaleziono zasobu") {
+  constructor(message = "Nie znaleziono zasobu") {
     super(message, 404, "AUTHORIZATION_ERROR");
   }
 }
@@ -75,7 +75,7 @@ export class AuthorizationError extends AppError {
  */
 export class RateLimitError extends AppError {
   constructor(
-    message: string = "Przekroczono limit requestów",
+    message = "Przekroczono limit requestów",
     public readonly retryAfter?: number
   ) {
     super(message, 429, "RATE_LIMIT_ERROR", { retry_after: retryAfter });
@@ -94,7 +94,7 @@ export class RateLimitError extends AppError {
  */
 export class ExternalServiceError extends AppError {
   constructor(
-    message: string = "Wystąpił problem z zewnętrznym serwisem",
+    message = "Wystąpił problem z zewnętrznym serwisem",
     details?: unknown
   ) {
     super(message, 500, "EXTERNAL_SERVICE_ERROR", details);
@@ -112,10 +112,7 @@ export class ExternalServiceError extends AppError {
  * });
  */
 export class DatabaseError extends AppError {
-  constructor(
-    message: string = "Wystąpił problem z bazą danych",
-    details?: unknown
-  ) {
+  constructor(message = "Wystąpił problem z bazą danych", details?: unknown) {
     super(message, 500, "DATABASE_ERROR", details);
   }
 }
@@ -128,7 +125,7 @@ export class DatabaseError extends AppError {
  * throw new NotFoundError("Flashcard not found");
  */
 export class NotFoundError extends AppError {
-  constructor(message: string = "Nie znaleziono zasobu") {
+  constructor(message = "Nie znaleziono zasobu") {
     super(message, 404, "NOT_FOUND_ERROR");
   }
 }
