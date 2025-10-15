@@ -40,6 +40,24 @@ See `.ai/tech-stack.md` for the complete stack documentation.
 - Document what you actually did vs. what you planned
 - **If the plan needs significant changes, flag it and get re-approval**
 
+### Rubber Duck Sessions
+
+When the user says **"rubber duck"** or requests critical analysis of a design decision:
+
+1. **Enter analytical mode** - be critical, objective, and question assumptions
+2. **Ask clarifying questions** about:
+   - What UI actually needs vs what we assume it needs
+   - MVP scope vs future features
+   - KISS vs premature optimization
+3. **Document the session** in `.claude/thinking/gumowa-kaczka-{topic}.md` with structure:
+   - **Problem**: What are we analyzing?
+   - **Założenia** (Assumptions): Context, constraints, MVP scope
+   - **Proces Analizy** (Analysis Process): Step-by-step reasoning
+   - **Decyzje** (Decisions): What we decided and why
+   - **Wnioski** (Conclusions): Lessons learned, patterns identified
+4. **Be brutally pragmatic** - challenge "nice to have" vs "must have"
+5. **Think evolution** - prefer decisions that allow non-breaking changes later
+
 ## Development Commands
 
 ```bash

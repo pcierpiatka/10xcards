@@ -31,15 +31,8 @@ Create a git commit with changes.
 3. Run `git log --oneline -5` to see recent commit message style
 4. Analyze changes and draft commit message
 5. Add relevant files with `git add`
-6. Create commit with message ending with:
 
-   ```
-   🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-   Co-Authored-By: Claude <noreply@anthropic.com>
-   ```
-
-7. Verify with `git status`
+6. Verify with `git status`
 
 **Important:**
 
@@ -76,7 +69,6 @@ Create a pull request for current branch.
    - [ ] Test item 1
    - [ ] Test item 2
 
-   🤖 Generated with [Claude Code](https://claude.com/claude-code)
    EOF
    )"
    ```
@@ -137,11 +129,6 @@ git diff
 git add app/ components/
 git commit -m "$(cat <<'EOF'
 feat: add user authentication
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
 )"
 ```
 
