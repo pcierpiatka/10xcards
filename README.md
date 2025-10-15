@@ -129,29 +129,16 @@ npm run start
 
 ```
 .
-├── app/                  # Next.js App Router
-│   ├── api/              # API routes
-│   │   └── health/       # Health check endpoint
-│   ├── layout.tsx        # Root layout
-│   ├── page.tsx          # Home page
-│   ├── globals.css       # Global styles
-│   ├── error.tsx         # Error boundary
-│   ├── global-error.tsx  # Root error boundary
-│   ├── not-found.tsx     # 404 page
-│   └── loading.tsx       # Loading UI
+├── app/                  # Next.js App Router pages and layouts
+│   └── api/              # API routes (health check)
 ├── components/           # React components
-│   ├── Welcome.tsx       # Landing page component
-│   └── ui/               # shadcn/ui components
-├── lib/                  # Utilities and types
-│   ├── utils.ts          # Helper functions
-│   ├── constants.ts      # App constants
-│   └── types/            # TypeScript type definitions
-│       ├── index.ts      # Core types
-│       ├── api.ts        # API types
-│       └── database.ts   # Database types
-└── public/               # Static assets
-    ├── favicon.svg       # App icon
-    └── robots.txt        # SEO crawler rules
+│   └── ui/               # shadcn/ui reusable components
+├── lib/                  # Utilities and shared code
+│   ├── db/               # Supabase clients and database schema types
+│   └── types/            # Application domain types (API, business logic)
+├── docker/               # Docker configuration and volumes
+│   └── volumes/db/migrations/  # Database schema migrations
+└── public/               # Static assets (favicon, robots.txt)
 ```
 
 ## Code Quality

@@ -1,0 +1,37 @@
+# CODEOWNERS
+#
+# This file defines code ownership for automatic PR reviewer assignment.
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+#
+# Order is important; the last matching pattern takes precedence.
+# Owners can be GitHub usernames, email addresses, or team names.
+#
+# Examples:
+#   /app/**/*.tsx @frontend-team
+#   /lib/db/** @database-team
+#   *.md @docs-team
+
+# Default owner for everything in the repo
+# This is a good practice to ensure all PRs get reviewed
+* @pawelc
+
+# GitHub workflows and CI/CD configuration
+/.github/** @pawelc
+
+# Database schema and migrations
+/docker/volumes/db/migrations/** @pawelc
+/lib/db/** @pawelc
+
+# API routes
+/app/api/** @pawelc
+
+# Documentation
+/*.md @pawelc
+/.ai/** @pawelc
+/.claude/** @pawelc
+
+# Configuration files
+/.env*.example @pawelc
+/docker-compose.yml @pawelc
+/Dockerfile* @pawelc

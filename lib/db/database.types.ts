@@ -15,7 +15,7 @@ export type Json =
   | Json[];
 
 // Source type for flashcard provenance (manual vs AI-generated)
-export type FlashcardSourceType = "manual" | "ai";
+export type FlashcardSourceType = "manual" | "ai" | "ai-edited";
 
 export interface Database {
   public: {

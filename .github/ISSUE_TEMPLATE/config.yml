@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 10xDevs Certification Project
+    url: https://github.com/10xdevs
+    about: Main 10xDevs organization page
+  - name: Documentation
+    url: https://github.com/pawelc/10xcards/blob/main/README.md
+    about: Project documentation and setup guide

@@ -72,7 +72,7 @@
   - Insert `flashcard_sources` row with full column set, `source_type='ai'`, `source_id = generation.id`.
   - Insert accepted `proposals` into `flashcards` referencing the new `flashcard_sources.id`.
   - Insert into `ai_generations_acceptance` (`accepted_count`, `rejected_count`, `finalized_at`).
-- **Response 202 JSON:**
+- **Response 204 JSON:**
 - **Errors:**
   - `400` — empty `proposals`, validation failure, count mismatch.
   - `404` — generation not found or not owned by user.
