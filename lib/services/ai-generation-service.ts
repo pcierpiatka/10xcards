@@ -12,15 +12,12 @@ import type {
   AiGenerationResponseDto,
   AiProposalDto,
 } from "@/lib/dto/types";
-import type { Database } from "@/lib/db/database.types";
-import { createClient } from "@/lib/db/supabase.server";
+import type { ServerSupabaseClient } from "@/lib/db/supabase.server";
 import { OpenRouterClient } from "@/lib/integrations/openrouter-client";
 import { aiGenerationResponseSchema } from "@/lib/validation/ai-generations";
 
 const MODEL_NAME = "gpt-4o-mini";
 const MAX_PROPOSALS = 10;
-
-type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 /**
  * AI Generation Service
@@ -32,7 +29,7 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
  */
 export class AiGenerationService {
   constructor(
-    private readonly supabase: SupabaseClient,
+    private readonly supabase: ServerSupabaseClient,
     private readonly openRouterClient: OpenRouterClient
   ) {}
 
@@ -103,9 +100,7 @@ export class AiGenerationService {
     }
 
     // Limit to MAX_PROPOSALS (defense in depth, schema already validates this)
-    const normalized = validationResult.data.proposals.slice(0, MAX_PROPOSALS);
-
-    return normalized;
+    return validationResult.data.proposals.slice(0, MAX_PROPOSALS);
   }
 
   /**
@@ -121,14 +116,14 @@ export class AiGenerationService {
     proposals: AiProposalDto[];
     durationMs: number;
   }): Promise<string> {
-    const { data: result, error } = await this.supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: result, error } = await (this.supabase as any)
       .from("ai_generations")
       .insert({
         user_id: data.userId,
         input_text: data.inputText,
         model_name: MODEL_NAME,
-        generated_proposals:
-          data.proposals as unknown as Database["public"]["Tables"]["ai_generations"]["Insert"]["generated_proposals"],
+        generated_proposals: data.proposals,
         generated_count: data.proposals.length,
         duration_ms: data.durationMs,
       })
