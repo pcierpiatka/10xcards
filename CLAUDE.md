@@ -2,6 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## Quick Start for AI Assistants
+
+**When working on this project:**
+
+1. **Read foundation:** `.claude/rules/core.md` (always)
+2. **Read domain rules:** `.claude/rules/[backend|frontend|database].md` (based on task)
+3. **For API implementation:** Use `.ai/implementation-rulebook.md` as template
+4. **For design analysis:** Document in `.claude/thinking/gumowa-kaczka-{topic}.md`
+
+**All rules:** `.claude/rules/README.md`
+
+---
+
 ## Project Overview
 
 **10xCards** is an AI-powered flashcard generator built as an MVP for the 10xDevs certification project. The application allows users to generate flashcards automatically using AI from pasted text, or create them manually. It includes user authentication, flashcard management (CRUD operations), and a simple learning mode.
@@ -18,14 +33,16 @@ Refer to `.ai/prd.md` for detailed product requirements document (in Polish), in
 ## Tech Stack
 
 - **Next.js 15** - React framework with App Router (SSR enabled)
-- **React 19** - UI library
+- **React 19** - UI library with latest features
 - **TypeScript 5** - Strict mode enabled
 - **Tailwind CSS 4** - Utility-first styling with custom color variables
 - **shadcn/ui** - Accessible React components built on Radix UI
-- **Supabase** - PostgreSQL database, authentication, and BaaS (planned, not yet implemented)
-- **OpenRouter** - AI model access (planned to use `gpt-4o-mini`)
+- **Supabase** - PostgreSQL database, authentication, and BaaS
+- **OpenRouter** - AI model access (using `gpt-4o-mini`)
+- **Docker** - Local development and deployment
+- **GitHub Actions** - CI/CD pipeline
 
-See `.ai/tech-stack.md` for the complete stack documentation.
+See `.ai/tech-stack.md` for complete stack documentation and `.claude/rules/core.md` for coding guidelines.
 
 ### Before starting work
 
