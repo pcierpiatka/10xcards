@@ -23,6 +23,10 @@ BEGIN
 END
 $$;
 
+-- Set search_path for supabase_auth_admin to find auth schema tables
+-- This fixes "relation does not exist" errors in GoTrue
+ALTER ROLE supabase_auth_admin SET search_path TO auth, public;
+
 -- Grant roles to authenticator
 GRANT anon, authenticated, service_role TO authenticator;
 
