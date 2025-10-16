@@ -40,6 +40,7 @@ Create a git commit with changes.
 - Follow existing commit message style
 - Don't commit files with secrets (.env, credentials, etc.)
 - If pre-commit hooks modify files, check if safe to amend or create new commit
+- Do NOT add Claude Code attribution footer or co-author lines to commits
 
 ### 2. PR (Pull Request)
 
@@ -80,6 +81,7 @@ Create a pull request for current branch.
 - Analyze ALL commits in branch, not just latest
 - Use HEREDOC for body formatting
 - Default base branch is `main`
+- Do NOT add Claude Code attribution footer or co-author lines to PR descriptions
 
 ### 3. Sync
 
@@ -127,9 +129,7 @@ Synchronize current branch with remote.
 git status
 git diff
 git add app/ components/
-git commit -m "$(cat <<'EOF'
-feat: add user authentication
-)"
+git commit -m "feat: add user authentication"
 ```
 
 **PR:**

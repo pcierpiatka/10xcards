@@ -16,13 +16,18 @@
  * See: .claude/thinking/gumowa-kaczka-dto-simplification.md
  */
 
-import type {
-  AiGeneration,
-  AiFlashcardProposal,
-  Flashcard,
-  FlashcardSource,
-  FlashcardSourceType,
-} from "@/lib/db/database.types";
+import type { FlashcardSourceType, Tables } from "@/lib/db/database.types";
+
+// Type aliases from new database types structure
+type AiGeneration = Tables<"ai_generations">;
+type Flashcard = Tables<"flashcards">;
+type FlashcardSource = Tables<"flashcard_sources">;
+
+// AI proposal structure (stored in generated_proposals JSONB)
+interface AiFlashcardProposal {
+  front: string;
+  back: string;
+}
 
 // ============================================================================
 // BASE TYPES & ALIASES
