@@ -116,8 +116,7 @@ export class AiGenerationService {
     proposals: AiProposalDto[];
     durationMs: number;
   }): Promise<string> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: result, error } = await (this.supabase as any)
+    const { data: result, error } = await this.supabase
       .from("ai_generations")
       .insert({
         user_id: data.userId,

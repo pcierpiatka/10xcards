@@ -41,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // }
 
     // TODO: Remove hardcoded user ID after auth is working
-    const user = { id: "123e4567-e89b-12d3-a456-426614174000" };
+    const user = { id: "58602db9-48a7-4758-9622-2b310effae31" };
 
     // 2. Parse and validate request body
     const body = await request.json();
