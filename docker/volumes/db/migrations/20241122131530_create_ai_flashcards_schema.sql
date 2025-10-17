@@ -5,6 +5,9 @@
 
 -- Note: pgcrypto extension is already enabled in supabase/postgres image
 
+-- create enum for flashcard source types
+create type flashcard_source_type as enum ('manual', 'ai', 'ai-edited');
+
 -- create table storing raw ai generation outputs and metadata
 create table public.ai_generations (
                                        id uuid default gen_random_uuid() primary key,
@@ -41,10 +44,9 @@ create index idx_ai_generations_acceptance_user_id_created_at on public.ai_gener
 create table public.flashcard_sources (
                                           flashcard_source_id uuid default gen_random_uuid() primary key,
                                           user_id uuid not null references auth.users (id) on delete cascade,
-                                          source_type text not null,
+                                          source_type flashcard_source_type not null,
                                           source_id uuid,
                                           created_at timestamptz not null default now(),
-                                          constraint flashcard_sources_source_type_check check (source_type in ('manual', 'ai')),
                                           constraint flashcard_sources_source_presence check (
                                               (source_type = 'manual' and source_id is null) or
                                               (source_type = 'ai' and source_id is not null)
@@ -61,6 +63,7 @@ create table public.flashcards (
                                    flashcard_id uuid default gen_random_uuid() primary key,
                                    user_id uuid not null references auth.users (id) on delete cascade,
                                    flashcard_source_id uuid not null,
+                                   source_type flashcard_source_type not null,
                                    front text not null,
                                    back text not null,
                                    created_at timestamptz not null default now(),

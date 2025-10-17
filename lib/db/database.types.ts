@@ -120,6 +120,7 @@ export interface Database {
           flashcard_id: string; // uuid
           flashcard_source_id: string; // uuid, references flashcard_sources
           front: string; // Flashcard front side (question)
+          source_type: FlashcardSourceType; // Denormalized source type for quick access
           user_id: string; // uuid
         };
         Insert: {
@@ -128,6 +129,7 @@ export interface Database {
           flashcard_id?: string;
           flashcard_source_id: string;
           front: string;
+          source_type: FlashcardSourceType;
           user_id: string;
         };
         Update: {
@@ -136,6 +138,7 @@ export interface Database {
           flashcard_id?: string;
           flashcard_source_id?: string;
           front?: string;
+          source_type?: FlashcardSourceType;
           user_id?: string;
         };
         Relationships: [

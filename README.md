@@ -52,7 +52,7 @@ docker-compose up -d
 4. **Create database structure (first time only or after `docker-compose down -v`):**
 
 ```bash
-./create-supabase-db-structure.sh
+./local-dev-scripts/create-supabase-db-structure.sh
 ```
 
 This script waits for services to be healthy and applies application migrations after GoTrue creates the auth tables.
@@ -77,7 +77,7 @@ docker-compose down
 docker-compose down -v
 ```
 
-**Note:** After removing volumes (`-v` flag), you must run `./create-supabase-db-structure.sh` again to recreate the database structure.
+**Note:** After removing volumes (`-v` flag), you must run `./local-dev-scripts/create-supabase-db-structure.sh` again to recreate the database structure.
 
 ### Option 2: Local Development without Docker
 
@@ -125,6 +125,52 @@ npm run start
 - `npm run format` - Format code with Prettier
 - `npx tsc --noEmit` - Type check without emitting files
 
+## Local Development Helper Scripts
+
+The `local-dev-scripts/` directory contains bash scripts for common development tasks:
+
+### Database Setup
+
+**`create-supabase-db-structure.sh`** - Initialize database structure
+
+```bash
+./local-dev-scripts/create-supabase-db-structure.sh
+```
+
+- Waits for Supabase services to be healthy
+- Applies application migrations after GoTrue creates auth tables
+- Run this after first `docker-compose up` or after `docker-compose down -v`
+
+### Row Level Security (RLS) Management
+
+**`disable-rls.sh`** - Temporarily disable RLS for testing
+
+```bash
+./local-dev-scripts/disable-rls.sh
+```
+
+- Disables Row Level Security on all application tables
+- **⚠️ WARNING:** Use only in local development environment
+- Removes security enforcement - data is accessible without auth checks
+- Useful for testing API endpoints or debugging
+
+**`enable-rls.sh`** - Re-enable RLS after testing
+
+```bash
+./local-dev-scripts/enable-rls.sh
+```
+
+- Restores Row Level Security on all application tables
+- Re-enables security policies
+- Run this after testing to restore proper access control
+
+**RLS Best Practices:**
+
+- Always re-enable RLS before committing changes
+- Never disable RLS in production environments
+- Use `disable-rls.sh` only for temporary local testing
+- Verify RLS status after running scripts (output shows table security status)
+
 ## Project Structure
 
 ```
@@ -135,9 +181,14 @@ npm run start
 │   └── ui/               # shadcn/ui reusable components
 ├── lib/                  # Utilities and shared code
 │   ├── db/               # Supabase clients and database schema types
+│   ├── dto/              # Data Transfer Objects (API contracts)
 │   └── types/            # Application domain types (API, business logic)
 ├── docker/               # Docker configuration and volumes
 │   └── volumes/db/migrations/  # Database schema migrations
+├── local-dev-scripts/    # Development helper scripts
+│   ├── create-supabase-db-structure.sh  # Initialize database
+│   ├── disable-rls.sh    # Disable Row Level Security for testing
+│   └── enable-rls.sh     # Re-enable Row Level Security
 └── public/               # Static assets (favicon, robots.txt)
 ```
 
