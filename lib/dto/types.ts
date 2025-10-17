@@ -115,13 +115,12 @@ export interface CreateManualFlashcardResponseDto extends FlashcardCoreDto {
 
 /**
  * Query: GET /api/flashcards
- * UI: Flashcard list with pagination and filters
+ * UI: Flashcard list with pagination
+ * Note: Always sorted by created_at DESC
  */
 export interface FlashcardListQuery {
   page?: number; // default: 1
   page_size?: number; // default: 20, max: 100
-  sort?: "created_at_asc" | "created_at_desc"; // default: created_at_desc
-  source_type?: FlashcardSourceType;
 }
 
 /**

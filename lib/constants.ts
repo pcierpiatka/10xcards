@@ -91,3 +91,15 @@ export const ERROR_MESSAGES = {
   FRONT_TOO_LONG: `Front of flashcard must be no more than ${FLASHCARD.FRONT_MAX_LENGTH} characters`,
   BACK_TOO_LONG: `Back of flashcard must be no more than ${FLASHCARD.BACK_MAX_LENGTH} characters`,
 } as const;
+
+/**
+ * Development configuration
+ * TODO: Remove after authentication is implemented
+ */
+export const DEV = {
+  /**
+   * Hardcoded user ID for development
+   * Used in API routes when authentication is not yet implemented
+   */
+  USER_ID: "c23972f2-d3cb-436f-8cf6-f2ffbbbcce5b",
+} as const;
