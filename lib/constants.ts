@@ -101,5 +101,5 @@ export const DEV = {
    * Hardcoded user ID for development
    * Used in API routes when authentication is not yet implemented
    */
-  USER_ID: "c23972f2-d3cb-436f-8cf6-f2ffbbbcce5b",
+  USER_ID: "eafcc4a2-258f-4152-b71e-0b4876511cc5",
 } as const;

@@ -17,6 +17,6 @@ done
 
 echo "✓ Auth service is healthy"
 echo "Applying application migrations..."
-./docker/volumes/db/apply-migrations.sh
+../docker/volumes/db/apply-migrations.sh
 
 echo "✓ Done! Database structure created successfully."

@@ -140,7 +140,11 @@ export class AiGenerationService {
     if (error) {
       console.error("[AiGenerationService] Failed to persist generation", {
         userId: data.userId,
-        error: error.message,
+        error: error,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        fullError: JSON.stringify(error),
       });
       throw new Error("Nie udało się zapisać generacji");
     }
