@@ -1,152 +1,115 @@
-# API Endpoint Implementation Plan: GET /api/ai/flashcards
+# API Endpoint Implementation Plan: GET /api/flashcards
 
 ## 1. Przegląd punktu końcowego
 
-Endpoint zwraca listę wygenerowanych przez AI propozycji fiszek wraz z metadanymi generacji i informacją o akceptacji. Dane pochodzą z tabel `ai_generations`, `ai_generations_acceptance`, `flashcard_sources` oraz `flashcards`. Celem jest umożliwienie UI prezentacji historii generacji AI oraz stanu (zaakceptowane, odrzucone/pending) poszczególnych propozycji.
+Punkt końcowy `GET /api/flashcards` jest odpowiedzialny za pobieranie listy fiszek dla uwierzytelnionego użytkownika. Umożliwia paginację wyników, sortowanie po dacie utworzenia. Odpowiedź ma sformalizowaną strukturę zawierającą dane oraz informacje o paginacji.
 
 ## 2. Szczegóły żądania
 
-- Metoda HTTP: `GET`
-- Struktura URL: `/api/ai/flashcards`
-- Parametry zapytania:
-  - Wymagane: brak
-  - Opcjonalne:
-    - `page` — liczba całkowita ≥1, domyślnie `1`
-    - `page_size` — liczba całkowita w zakresie [1, 50], domyślnie `20`
-    - `sort` — enum (`"created_at_desc"` domyślnie, `"created_at_asc"`)
-    - `status` — enum (`"all"`, `"pending"`, `"accepted"`), domyślnie `"all"`
-    - `generation_id` — identyfikator BIGINT w formie string; filtruje do jednej generacji użytkownika
-- Nagłówki:
-  - `Authorization: Bearer <Supabase JWT>` (wymagane)
-- Body: brak
+- **Metoda HTTP:** `GET`
+- **Struktura URL:** `/api/flashcards`
+- **Nagłówki:**
+  - `Authorization`: `Bearer <Supabase JWT>` (Wymagane)
+- **Parametry Zapytania (Query Params):**
+  - **Opcjonalne:**
+    - `page` (`number`): Numer strony do pobrania. Domyślnie: `1`.
+    - `page_size` (`number`): Liczba elementów na stronie. Domyślnie: `20`, Maksymalnie: `100`.
+    - `sort` (`string`): Pole i kierunek sortowania. Dopuszczalne wartości: `created_at_desc`, `created_at_asc`. Domyślnie: `created_at_desc`.
 
 ## 3. Wykorzystywane typy
 
-Do zaktualizowania/utworzenia w `@/lib/dto/types`:
+Do implementacji tego punktu końcowego zostaną wykorzystane następujące typy zdefiniowane w `lib/dto/types.ts`:
 
-- `export interface AiFlashcardListQuery { page?: number; page_size?: number; sort?: "created_at_asc" | "created_at_desc"; status?: "all" | "pending" | "accepted"; generation_id?: string; }`
-- `export interface AiFlashcardProposalStateDto extends AiProposalDto { proposal_index: number; state: "pending" | "accepted"; flashcard_id: FlashcardId | null; }`
-- `export interface AiFlashcardListItemDto { generation_id: AiGenerationId; created_at: string; duration_ms: number | null; model_name: string; generated_count: number; accepted_count: number; rejected_count: number; proposals: AiFlashcardProposalStateDto[]; }`
-- `export interface AiFlashcardListResponseDto { data: AiFlashcardListItemDto[]; pagination: PaginationDto; }`
-
-Command modele nie są potrzebne (tylko operacja odczytu). Reużywamy `PaginationDto`, `AiProposalDto`, `AiGenerationId`, `FlashcardId`.
+- **Request Query:** `FlashcardListQuery`
+- **Response Body:** `FlashcardListResponseDto`
+- **Response Data Item:** `FlashcardListItemDto`
+- **Response Pagination:** `PaginationDto`
 
 ## 4. Szczegóły odpowiedzi
 
-- Status sukcesu: `200 OK`
-- Treść JSON (`AiFlashcardListResponseDto`):
+- **Sukces (200 OK):**
+  Zwraca obiekt JSON zgodny z typem `FlashcardListResponseDto`.
 
-```json
-{
-  "data": [
-    {
-      "generation_id": "123",
-      "created_at": "2024-06-01T12:00:00Z",
-      "duration_ms": 8500,
-      "model_name": "gpt-4o-mini",
-      "generated_count": 5,
-      "accepted_count": 3,
-      "rejected_count": 2,
-      "proposals": [
-        {
-          "proposal_index": 0,
-          "front": "Question?",
-          "back": "Answer.",
-          "state": "accepted",
-          "flashcard_id": "uuid-or-null"
-        }
-      ]
+  ```json
+  {
+    "data": [
+      {
+        "id": "c2a9b3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6",
+        "front": "What is REST?",
+        "back": "Representational State Transfer is an architectural style...",
+        "source_type": "ai",
+        "created_at": "2024-07-28T10:00:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "page_size": 20,
+      "total_pages": 5,
+      "total_items": 87
     }
-  ],
-  "pagination": {
-    "page": 1,
-    "page_size": 20,
-    "total_pages": 3,
-    "total_items": 45
   }
-}
-```
+  ```
 
-- Kody statusu błędów:
-  - `400 Bad Request` — błędne parametry zapytania
-  - `401 Unauthorized` — brak poprawnego JWT
-  - `404 Not Found` — `generation_id` nie istnieje lub nie należy do użytkownika
-  - `500 Internal Server Error` — nieoczekiwany błąd serwera
+- **Błędy:**
+  - `400 Bad Request`: Nieprawidłowe parametry zapytania.
+  - `401 Unauthorized`: Brak autoryzacji.
+  - `500 Internal Server Error`: Wewnętrzny błąd serwera.
 
 ## 5. Przepływ danych
 
-1. Route handler (`app/api/ai/flashcards/route.ts`, funkcja `GET`) tworzy klienta Supabase (`createRouteHandlerClient`) i uwierzytelnia użytkownika.
-2. Parametry zapytania są walidowane Zod-em (`AiFlashcardListQuerySchema` w `@/lib/validation/ai-flashcards`).
-3. Handler instancjonuje `AiFlashcardService` (np. `@/lib/services/ai-flashcard-service`), przekazując klienta Supabase.
-4. `AiFlashcardService.listAiFlashcards`:
-   - Buduje bazowe zapytanie do `ai_generations` filtrowane po `user_id`.
-   - Stosuje filtry (`generation_id`, `status` – bazując na obecności wpisu w `ai_generations_acceptance`).
-   - Paginuje (limit/offset) i sortuje.
-   - Dołącza (`left join`) `ai_generations_acceptance` dla metryk akceptacji.
-   - Pobiera powiązane `flashcard_sources` (`source_type='ai'`) i `flashcards` dla danej generacji (po `flashcard_sources.source_id = ai_generations.id`).
-   - Mapuje `generated_proposals` (JSON) z pozycji `proposal_index` i ustala `state` na `"accepted"` dla propozycji, które mają odpowiadającą fiszkę; pozostałe `"pending"`.
-5. Service zwraca `AiFlashcardListResponseDto`.
-6. Route handler zwraca `NextResponse.json(dto, { status: 200 })`.
-7. Wszystkie operacje polegać będą na istniejącym RLS — brak dodatkowych ograniczeń w kodzie.
+1.  Żądanie `GET` trafia do `app/api/flashcards/route.ts`.
+2.  **Uwierzytelnianie:** Handler używa `createRouteHandlerClient` do pobrania sesji użytkownika. Jeśli użytkownik nie jest uwierzytelniony, zwracany jest błąd `401 Unauthorized`.
+3.  **Walidacja:** Parametry zapytania są parsowane i walidowane przy użyciu dedykowanego schematu Zod dla `FlashcardListQuery`. W przypadku niepowodzenia walidacji, zwracany jest błąd `400 Bad Request` ze szczegółami.
+4.  **Wywołanie serwisu:** Tworzona jest instancja `FlashcardService`, a następnie wywoływana jest metoda `getFlashcards(userId, validatedQuery)`.
+5.  **Logika w serwisie (`FlashcardService`):**
+    a. Metoda `getFlashcards` konstruuje zapytanie do bazy danych Supabase skierowane wyłącznie do tabeli `flashcards`.
+    b. Do zapytania dodawane jest `sort` na podstawie zwalidowanych parametrów.
+    c. Zapytanie jest wykonywane z opcją `{ count: 'exact' }`, aby jednocześnie pobrać dane i całkowitą liczbę rekordów pasujących do filtrów, co eliminuje potrzebę drugiego zapytania.
+    d. Na podstawie zwróconej liczby całkowitej (`count`) obliczane są metadane paginacji (`total_pages`).
+    e. Wyniki z bazy danych są bezpośrednio mapowane na strukturę `FlashcardListItemDto`, ponieważ tabela `flashcards` zawiera wszystkie wymagane pola (`id`, `front`, `back`, `source_type`, `created_at`).
+    f. Metoda zwraca kompletny obiekt `FlashcardListResponseDto`.
+6.  **Odpowiedź:** Handler w `route.ts` otrzymuje dane z serwisu i zwraca je jako odpowiedź JSON ze statusem `200 OK`.
 
 ## 6. Względy bezpieczeństwa
 
-- Uwierzytelnienie: Supabase JWT sprawdzane poprzez `supabase.auth.getUser()`. Brak użytkownika ⇒ 401.
-- Autoryzacja: relying na RLS (`user_id = auth.uid()`), zapytania zawsze ograniczają się do bieżącego użytkownika.
-- Walidacja wejścia: Zod gwarantuje typy i zakresy parametrów, zapobiega SQL injection (Supabase query builder).
-- Ochrona danych: Response nie powinien ujawniać danych innych użytkowników (zapewnia RLS).
-- Rate limiting: opcjonalnie dodać w przyszłości middleware, ale obecnie brak specyficznego limitu dla GET.
-- Dane wrażliwe: w odpowiedzi tylko konieczne informacje (bez `input_text` oryginalnego promptu, jeśli niepotrzebne; rozważyć pominięcie, aby zminimalizować wycieki).
+- **Uwierzytelnianie:** Dostęp do punktu końcowego jest zabezpieczony i wymaga prawidłowego tokenu JWT, który jest weryfikowany przez Supabase Auth Helpers na serwerze.
+- **Autoryzacja:** Dostęp do danych jest kontrolowany przez polityki Row Level Security (RLS) w bazie danych PostgreSQL. Polityki te gwarantują, że użytkownik może odczytać wyłącznie własne fiszki (`user_id = auth.uid()`). Kod aplikacji **nie powinien** implementować dodatkowej logiki autoryzacji w warstwie serwisowej.
+- **Walidacja danych wejściowych:** Wszystkie parametry zapytania są ściśle walidowane za pomocą Zod, co zapobiega błędom w logice biznesowej i potencjalnym atakom (np. poprzez manipulację `page_size`).
 
 ## 7. Obsługa błędów
 
-- Walidacja Zod → w przypadku `!success` zwracamy `400` z `ErrorResponseDto` (np. `"message": "Invalid query parameters"` z `details`).
-- Brak użytkownika (`getUser()` zwraca null) → `NextResponse.json({ message: "Unauthorized" }, { status: 401 })`.
-- Gdy `generation_id` podany, ale nie ma wyniku → `404` z komunikatem `"Generation not found"`.
-- Supabase error (np. problemy DB) → log przez `console.error("[AiFlashcardService] listAiFlashcards failed", { userId, query, error })`, zwrócić `500` z przyjazną wiadomością (`"message": "Failed to load AI flashcards."`).
-- Nie ujawniamy szczegółów błędów w odpowiedzi.
+Błędy będą obsługiwane w handlerze (`route.ts`) w bloku `try...catch`.
+
+| Kod statusu          | Sytuacja                                                                  | Akcja                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `400 Bad Request`    | Błąd walidacji parametrów zapytania (np. `page_size > 100`).              | Zwrócenie odpowiedzi JSON z komunikatem błędu i szczegółami walidacji z Zod.                                      |
+| `401 Unauthorized`   | Brak lub nieważny token JWT.                                              | Zwrócenie standardowej odpowiedzi `401`.                                                                          |
+| `500 Internal Error` | Nieoczekiwany błąd serwera (np. błąd bazy danych, błąd w logice serwisu). | Zalogowanie szczegółowego błędu do konsoli (`console.error`) i zwrócenie generycznej odpowiedzi `500` do klienta. |
 
 ## 8. Rozważania dotyczące wydajności
 
-- Pagination (limit/offset) – ograniczenie `page_size` do 50. Dodatkowo sortowanie po `created_at DESC` korzysta z indeksu `idx_ai_generations_user_created`.
-- Redukcja liczby zapytań: jedno główne zapytanie do `ai_generations`, następnie jedno pomocnicze do `flashcards` z `WHERE source_id IN (...)` (użyć `in` i `select` w Supabase).
-- JSON `generated_proposals` – mapowanie w kodzie (unikanie wielu round-trips).
-- Przy dużej historii generacji monitorować koszt transferu (możliwe w przyszłości kursory).
-- Opcjonalnie wprowadzić caching na warstwie CDN (ale dane per użytkownik, więc raczej SSR no-store).
-- Brak kosztownych `ORDER BY RANDOM()`.
+- **Indeksowanie bazy danych:** Zapytanie będzie filtrować i sortować dane w tabeli `flashcards`. Istniejący indeks `idx_flashcards_user_id_created_at` jest kluczowy. W celu optymalizacji zapytań z filtrowaniem po `source_type`, zalecane jest dodanie indeksu złożonego na kolumnach `(user_id, source_type, created_at)`.
+- **Paginacja:** Ograniczenie `page_size` do `100` zapobiega pobieraniu nadmiernej ilości danych w jednym żądaniu, chroniąc serwer i bazę danych przed przeciążeniem.
+- **Rozmiar odpowiedzi:** Zastosowanie DTO (`FlashcardListItemDto`) o spłaszczonej, minimalnej strukturze, ogranicza rozmiar odpowiedzi, co przekłada się na szybsze przesyłanie danych do klienta.
 
 ## 9. Etapy wdrożenia
 
-1. **DTO & typy**
-   - Dodać nowe interfejsy (`AiFlashcardListQuery`, `AiFlashcardProposalStateDto`, `AiFlashcardListItemDto`, `AiFlashcardListResponseDto`) do `@/lib/dto/types`.
-2. **Walidacja**
-   - Utworzyć `@/lib/validation/ai-flashcards.ts` z `AiFlashcardListQuerySchema` (Zod), eksportować helper `parseAiFlashcardListQuery(searchParams: URLSearchParams)`.
-3. **Serwis**
-   - Dodać `@/lib/services/ai-flashcard-service.ts` z klasą `AiFlashcardService`.
-   - Metoda `constructor(client: SupabaseClient<Database>)`. Sprawdzic czy SupabaseClient pochdzi z @/lib/db/supabase.server
-   - Metoda `async listAiFlashcards(userId: string, query: AiFlashcardListQuery): Promise<AiFlashcardListResponseDto>`.
-   - Zaimplementować zapytania Supabase:
-     - Pobranie generacji z paginacją i sortowaniem.
-     - Pobranie akceptacji (`ai_generations_acceptance`).
-     - Pobranie fiszek (`flashcards` dołączonych przez `flashcard_sources`).
-     - Mapowanie do DTO (w tym `state`).
-4. **Route handler**
-   - Utworzyć `app/api/ai/flashcards/route.ts`.
-   - Implementacja `export async function GET(request: NextRequest)`:
-     - Inicjalizacja Supabase clienta.
-     - Autoryzacja użytkownika.
-     - Parsowanie zapytania (użycie walidatora).
-     - Wywołanie serwisu.
-     - Obsługa błędów za pomocą `try/catch`, translacja do `ErrorResponseDto`.
-5. **Obsługa błędów**
-   - W razie potrzeby dodać nowe klasy błędów (np. `InvalidQueryError`, `NotFoundError`) w `@/lib/errors`.
-   - Route handler tłumaczy je na odpowiednie kody statusu.
-6. **Testy jednostkowe**
-   - Przygotować testy dla walidatora Zod.
-   - Testy serwisu wykorzystujące Supabase client mock lub local Supabase (np. `vitest` + `@supabase/supabase-js` w trybie stub).
-   - Test route handler (np. `supertest` / `next-test-api-route-handler`).
-7. **Dokumentacja**
-   - Upewnić się, że Swagger / Postman (jeśli używany) jest spójny.
-8. **Review & Deployment**
-   - Code review pod kątem zgodności z zasadami (Zod, RLS, logowanie).
-   - Po zatwierdzeniu wdrożyć przez pipeline GitHub Actions → DigitalOcean.
+1.  **Walidacja:**
+    - Utworzyć plik `lib/validation/flashcard-validation.ts`.
+    - Zdefiniować w nim schemat Zod `flashcardListQuerySchema` walidujący parametry `page`, `page_size`, `sort`/ z odpowiednimi domyślnymi wartościami i ograniczeniami.
+
+2.  **Warstwa serwisowa:**
+    - W pliku `lib/services/flashcard-service.ts`, w klasie `FlashcardService`, zaimplementować metodę `async getFlashcards(userId: string, query: FlashcardListQuery): Promise<FlashcardListResponseDto>`.
+    - Wewnątrz metody zaimplementować logikę budowania i wykonania zapytania do tabeli `flashcards`, mapowania wyników na DTO oraz konstruowania finalnej odpowiedzi.
+
+3.  **Handler API:**
+    - W pliku `app/api/flashcards/route.ts` zaimplementować funkcję `export async function GET(request: NextRequest)`.
+    - Dodać logikę uwierzytelniania użytkownika.
+    - Zwalidować parametry zapytania przy użyciu schematu Zod.
+    - Wywołać metodę z `FlashcardService`, przekazując `userId` i zwalidowane parametry.
+    - Zaimplementować obsługę błędów w bloku `try...catch`.
+    - Zwrócić odpowiedź w formacie `NextResponse.json()`.
+
+4.  **Testy:**
+    - Napisać testy jednostkowe dla metody `getFlashcards` w `FlashcardService`, symulując różne parametry wejściowe.
+    - Napisać testy integracyjne dla punktu końcowego `GET /api/flashcards`, weryfikując poprawność działania paginacji, sortowania i filtrowania w różnych scenariuszach.

@@ -41,3 +41,5 @@ next-env.d.ts
 
 # docker
 .dockerignore
+
+.prompt

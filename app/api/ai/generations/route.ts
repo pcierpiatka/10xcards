@@ -13,6 +13,7 @@ import { OpenRouterClient } from "@/lib/integrations/openrouter-client";
 import { createAiGenerationSchema } from "@/lib/validation/ai-generations";
 import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";
+import { DEV } from "@/lib/constants";
 
 /**
  * POST /api/ai/generations
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // }
 
     // TODO: Remove hardcoded user ID after auth is working
-    const user = { id: "58602db9-48a7-4758-9622-2b310effae31" };
+    const user = { id: DEV.USER_ID };
 
     // 2. Parse and validate request body
     const body = await request.json();
