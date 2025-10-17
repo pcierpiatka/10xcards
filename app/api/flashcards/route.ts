@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/db/supabase.server";
-import { FlashcardService } from "@/lib/services/flashcard-service";
+import { FlashcardService } from "@/lib/services/flashcard-service.server";
 import { flashcardListQuerySchema } from "@/lib/validation/flashcard-validation";
 import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";

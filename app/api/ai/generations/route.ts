@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/db/supabase.server";
-import { AiGenerationService } from "@/lib/services/ai-generation-service";
+import { AiGenerationService } from "@/lib/services/ai-generation-service.server";
 import { OpenRouterClient } from "@/lib/integrations/openrouter-client";
 import { createAiGenerationSchema } from "@/lib/validation/ai-generations";
 import { AppError, ValidationError } from "@/lib/errors/index";
