@@ -49,3 +49,20 @@ export const aiGenerationResponseSchema = z.object({
     .min(1, "Musi być co najmniej jedna propozycja")
     .max(10, "Może być maksymalnie 10 propozycji"),
 });
+
+/**
+ * Schema for POST /api/ai/generations/accept request body
+ *
+ * Validates AcceptAiGenerationCommand DTO
+ * Requirements:
+ * - generation_id: must be a valid UUID
+ * - proposals: non-empty array of flashcard proposals
+ * - Each proposal must have front (1-300 chars) and back (1-600 chars)
+ */
+export const acceptAiGenerationSchema = z.object({
+  generation_id: z.string().uuid("ID generacji musi być w formacie UUID"),
+  proposals: z
+    .array(aiProposalSchema)
+    .min(1, "Musisz zaakceptować co najmniej jedną propozycję")
+    .max(10, "Można zaakceptować maksymalnie 10 propozycji"),
+});

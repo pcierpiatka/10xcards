@@ -165,7 +165,16 @@ export interface Database {
       };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      accept_ai_generation: {
+        Args: {
+          p_user_id: string; // uuid
+          p_generation_id: string; // uuid
+          p_proposals: Json; // jsonb array
+        };
+        Returns: undefined; // VOID
+      };
+    };
     Enums: {
       aal_level: "aal1" | "aal2" | "aal3";
       code_challenge_method: "s256" | "plain";

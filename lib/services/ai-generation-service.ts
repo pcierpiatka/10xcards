@@ -11,10 +11,18 @@ import type {
   CreateAiGenerationCommand,
   AiGenerationResponseDto,
   AiProposalDto,
+  AcceptAiGenerationCommand,
 } from "@/lib/dto/types";
 import type { ServerSupabaseClient } from "@/lib/db/supabase.server";
+import type { Json } from "@/lib/db/database.types";
 import { OpenRouterClient } from "@/lib/integrations/openrouter-client";
 import { aiGenerationResponseSchema } from "@/lib/validation/ai-generations";
+import {
+  NotFoundError,
+  ConflictError,
+  ValidationError,
+  DatabaseError,
+} from "@/lib/errors";
 
 const MODEL_NAME = "gpt-4o-mini";
 const MAX_PROPOSALS = 10;
@@ -138,5 +146,69 @@ export class AiGenerationService {
     }
 
     return result.id;
+  }
+
+  /**
+   * Accepts AI-generated flashcard proposals atomically
+   *
+   * Flow:
+   * 1. Calls PostgreSQL RPC function accept_ai_generation
+   * 2. RPC creates flashcard_sources, flashcards, and ai_generations_acceptance records
+   * 3. All operations executed in single transaction (atomic)
+   * 4. Maps PostgreSQL error codes to domain errors
+   *
+   * @param userId - Authenticated user ID
+   * @param command - Acceptance command (generation_id, proposals)
+   * @returns Promise that resolves when acceptance completes
+   * @throws NotFoundError (404) if generation doesn't exist or doesn't belong to user
+   * @throws ConflictError (409) if generation was already accepted
+   * @throws ValidationError (400) if proposal validation fails
+   * @throws DatabaseError (500) for other database errors
+   */
+  async acceptGeneration(
+    userId: string,
+    command: AcceptAiGenerationCommand
+  ): Promise<void> {
+    // Call PostgreSQL RPC function for atomic acceptance
+    const { error } = await this.supabase.rpc("accept_ai_generation", {
+      p_user_id: userId,
+      p_generation_id: command.generation_id,
+      p_proposals: command.proposals as unknown as Json,
+    });
+
+    // Handle errors with appropriate domain error types
+    if (error) {
+      console.error("[AiGenerationService] Failed to accept generation", {
+        userId,
+        generationId: command.generation_id,
+        proposalsCount: command.proposals.length,
+        errorCode: error.code,
+        errorMessage: error.message,
+      });
+
+      // Map PostgreSQL error codes to domain errors
+      switch (error.code) {
+        case "P0001": // Custom NOT FOUND error from RPC
+          throw new NotFoundError(
+            "Nie znaleziono generacji AI lub brak dostępu"
+          );
+
+        case "23505": // Unique violation (duplicate acceptance)
+          throw new ConflictError("Ta generacja AI została już zaakceptowana");
+
+        case "22000": // Data exception (validation error)
+          throw new ValidationError(
+            error.message || "Nieprawidłowe dane propozycji"
+          );
+
+        default:
+          throw new DatabaseError("Nie udało się zaakceptować generacji", {
+            code: error.code,
+            message: error.message,
+          });
+      }
+    }
+
+    // Success - no return value needed (void)
   }
 }

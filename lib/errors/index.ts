@@ -129,3 +129,16 @@ export class NotFoundError extends AppError {
     super(message, 404, "NOT_FOUND_ERROR");
   }
 }
+
+/**
+ * Conflict error (409 Conflict)
+ * Used when operation conflicts with current state (e.g., duplicate resource)
+ *
+ * @example
+ * throw new ConflictError("AI generation already accepted");
+ */
+export class ConflictError extends AppError {
+  constructor(message = "Operacja jest w konflikcie z obecnym stanem") {
+    super(message, 409, "CONFLICT_ERROR");
+  }
+}
