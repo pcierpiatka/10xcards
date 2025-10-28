@@ -33,9 +33,13 @@ Komponenty zostaną zbudowane przy użyciu biblioteki `Shadcn/ui`. Struktura bę
     │   │   ├── shadcn/AlertDialog (dla potwierdzenia usunięcia)
     │   │   └── Pola formularza do edycji inline (warunkowo)
     │   └── shadcn/Button ("Załaduj więcej", warunkowo)
-    └── EmptyState (warunkowo)
-        ├── Komunikat
-        └── shadcn/Button ("Wygeneruj swoje pierwsze fiszki")
+    ├── EmptyState (warunkowo)
+    │   ├── Komunikat
+    │   └── shadcn/Button ("Wygeneruj swoje pierwsze fiszki")
+    └── AiGenerationLoadingModal (warunkowo, gdy isGeneratingAi = true)
+        ├── shadcn/Dialog (backdrop + content)
+        ├── Loader2 icon (spinner z Lucide React)
+        └── Komunikaty tekstowe
 
 ## 4. Szczegóły komponentów
 
@@ -107,6 +111,16 @@ Komponenty zostaną zbudowane przy użyciu biblioteki `Shadcn/ui`. Struktura bę
 - **Obsługiwana walidacja:** Brak.
 - **Typy:** Brak.
 - **Propsy:** Brak.
+
+### `AiGenerationLoadingModal`
+
+- **Opis komponentu:** Modal wyświetlany podczas generowania fiszek przez AI. Blokuje interakcję z interfejsem i informuje użytkownika o trwającym procesie. Generowanie przez OpenRouter API może trwać 5-30 sekund, dlatego jasny feedback jest kluczowy dla UX.
+- **Główne elementy:** `shadcn/Dialog` z animowaną ikoną `Loader2` (spinner), tekstem głównym "Generuję fiszki za pomocą AI..." oraz tekstem pomocniczym "To może potrwać kilka sekund".
+- **Obsługiwane interakcje:** Brak - modal nie może być zamknięty przez użytkownika (brak przycisku X, zablokowane ESC i kliknięcie backdrop). Zamyka się automatycznie po zakończeniu generowania (sukces lub błąd).
+- **Obsługiwana walidacja:** Brak.
+- **Typy:** `AiGenerationLoadingModalProps`.
+- **Propsy:**
+  - `isOpen: boolean` - kontroluje widoczność modala (bound do `isGeneratingAi` z hooka `useDashboardManager`).
 
 ## 5. Typy
 
@@ -301,3 +315,63 @@ const acceptAiProposals = async (selected: AiProposalDto[]) => {
 ```
 
 **Uzasadnienie:** Po zaakceptowaniu propozycji, stary tekst wejściowy nie jest już potrzebny. Automatyczne czyszczenie formularza przygotowuje interfejs do następnej sesji generowania, eliminując konieczność ręcznego usuwania tekstu przez użytkownika. Mechanizm `key` powoduje całkowite odmontowanie i ponowne zamontowanie komponentu, resetując jego wewnętrzny stan React. Ten sam mechanizm działa również dla `rejectAiProposals()` (`hooks/useDashboardManager.ts:135`).
+
+### 12.5. Modal ładowania podczas generowania AI
+
+**Data:** 2025-10-28
+
+**Zmiana:** Dodano modal z spinnerem wyświetlany podczas generowania fiszek przez AI, blokujący interakcję z interfejsem.
+
+**Implementacja:**
+
+1. **Komponent `AiGenerationLoadingModal`** (`components/dashboard/AiGenerationLoadingModal.tsx`):
+
+```tsx
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+
+interface AiGenerationLoadingModalProps {
+  isOpen: boolean;
+}
+
+export function AiGenerationLoadingModal({
+  isOpen,
+}: AiGenerationLoadingModalProps) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="sm:max-w-md"
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+        hideCloseButton
+      >
+        <div className="flex flex-col items-center gap-4 py-8">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <div className="text-center space-y-2">
+            <p className="text-lg font-medium">
+              Generuję fiszki za pomocą AI...
+            </p>
+            <p className="text-sm text-muted-foreground">
+              To może potrwać kilka sekund
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+2. **Integracja w `DashboardView`** (`components/dashboard/DashboardView.tsx:114`):
+
+```tsx
+// Na końcu return, przed zamykającym </div>
+<AiGenerationLoadingModal isOpen={isGeneratingAi} />
+```
+
+3. **Modyfikacja `DialogContent`** (`components/ui/dialog.tsx:32-58`):
+
+Dodano prop `hideCloseButton?: boolean` do `DialogContent`, umożliwiający ukrycie przycisku zamykania (X). Modal z tym propem nie może być zamknięty przez użytkownika - tylko programowo po zakończeniu operacji.
+
+**Uzasadnienie:** Generowanie fiszek przez OpenRouter API może trwać 5-30 sekund. Obecny feedback (spinner na przycisku "Generuj") był niewystarczający - użytkownicy mogli nie zauważyć stanu ładowania i próbować klikać inne elementy interfejsu, co powodowało niepewność czy aplikacja działa. Modal z jasnym komunikatem, animowanym spinnerem i blokadą interfejsu (backdrop) eliminuje niepewność i zapobiega przypadkowym kliknięciom podczas przetwarzania. Automatyczne zamknięcie po zakończeniu operacji (sukces lub błąd) zapewnia płynny UX bez dodatkowej akcji użytkownika. Brak możliwości zamknięcia modala ręcznie (zablokowane: przycisk X, klawisz ESC, kliknięcie backdrop) zapobiega przerwaniu operacji API w połowie procesu.

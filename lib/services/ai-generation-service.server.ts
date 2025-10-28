@@ -63,7 +63,9 @@ export class AiGenerationService {
     const startTime = performance.now();
 
     // Call OpenRouter to generate proposals
-    const rawProposals = await this.openRouterClient.generateFlashcards();
+    const rawProposals = await this.openRouterClient.generateFlashcards(
+      command.input_text
+    );
 
     const durationMs = Math.round(performance.now() - startTime);
 

@@ -5,6 +5,7 @@ import { EmptyState } from "./EmptyState";
 import { FlashcardList } from "./FlashcardList";
 import { AiGeneratorForm } from "./AiGeneratorForm";
 import { AiProposalsList } from "./AiProposalsList";
+import { AiGenerationLoadingModal } from "./AiGenerationLoadingModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -108,6 +109,9 @@ export function DashboardView() {
       ) : (
         <EmptyState />
       )}
+
+      {/* AI Generation Loading Modal */}
+      <AiGenerationLoadingModal isOpen={isGeneratingAi} />
     </div>
   );
 }
