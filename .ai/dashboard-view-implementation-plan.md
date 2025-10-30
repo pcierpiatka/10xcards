@@ -375,3 +375,171 @@ export function AiGenerationLoadingModal({
 Dodano prop `hideCloseButton?: boolean` do `DialogContent`, umożliwiający ukrycie przycisku zamykania (X). Modal z tym propem nie może być zamknięty przez użytkownika - tylko programowo po zakończeniu operacji.
 
 **Uzasadnienie:** Generowanie fiszek przez OpenRouter API może trwać 5-30 sekund. Obecny feedback (spinner na przycisku "Generuj") był niewystarczający - użytkownicy mogli nie zauważyć stanu ładowania i próbować klikać inne elementy interfejsu, co powodowało niepewność czy aplikacja działa. Modal z jasnym komunikatem, animowanym spinnerem i blokadą interfejsu (backdrop) eliminuje niepewność i zapobiega przypadkowym kliknięciom podczas przetwarzania. Automatyczne zamknięcie po zakończeniu operacji (sukces lub błąd) zapewnia płynny UX bez dodatkowej akcji użytkownika. Brak możliwości zamknięcia modala ręcznie (zablokowane: przycisk X, klawisz ESC, kliknięcie backdrop) zapobiega przerwaniu operacji API w połowie procesu.
+
+### 12.6. Click-to-select dla propozycji AI (Card-based selection)
+
+**Data:** 2025-10-30
+
+**Zmiana:** Zmieniono mechanizm zaznaczania propozycji AI z checkbox na kliknięcie całej karty. Dodatkowo przeniesiono przyciski akcji na górę listy.
+
+**Implementacja:**
+
+1. **Modyfikacja `AiProposalItem`** (`components/dashboard/AiProposalItem.tsx`):
+
+**Przed:**
+
+```tsx
+<Card className={isSelected ? "border-2 border-green-500 ..." : ""}>
+  <CardContent className="p-4">
+    <div className="flex gap-4">
+      <Checkbox checked={isSelected} onCheckedChange={onToggle} />
+      <div className="flex-1 space-y-2">{/* Content */}</div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+**Po:**
+
+```tsx
+<Card
+  className={cn(
+    "cursor-pointer transition-all hover:shadow-md",
+    isSelected
+      ? "border-2 border-green-500 bg-green-50/50 dark:bg-green-950/20"
+      : "hover:border-primary/50"
+  )}
+  onClick={onToggle}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onToggle();
+    }
+  }}
+  aria-pressed={isSelected}
+  aria-label={`${isSelected ? "Odznacz" : "Zaznacz"} propozycję: ${proposal.front}`}
+>
+  <CardContent className="p-4">
+    <div className="space-y-2">{/* Content bez checkbox */}</div>
+  </CardContent>
+</Card>
+```
+
+**Zmiany:**
+
+- Usunięto `<Checkbox>` i jego wrapper `<div className="flex gap-4">`
+- Dodano `onClick={onToggle}` bezpośrednio na `<Card>`
+- Dodano `cursor-pointer` dla wskazania interaktywności
+- Dodano `hover:shadow-md` dla visual feedback
+- Dodano `hover:border-primary/50` dla niezaznaczonych kart
+- Dodano accessibility: `role="button"`, `tabIndex={0}`, `aria-pressed`, `aria-label`
+- Dodano keyboard support: Enter i Space zaznaczają/odznaczają
+- Layout zmieniony z `flex` na prosty `space-y-2` (bez checkboxa nie potrzeba flexbox)
+
+2. **Modyfikacja `AiProposalsList`** (`components/dashboard/AiProposalsList.tsx`):
+
+**Przed:**
+
+```tsx
+<div className="space-y-6">
+  {/* Header */}
+  <div className="flex items-center justify-between">
+    <p className="text-sm text-muted-foreground">...</p>
+  </div>
+
+  {/* Grid */}
+  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {proposals.map(...)}
+  </div>
+
+  {/* Buttons at bottom */}
+  <div className="flex gap-3">
+    <Button onClick={handleAccept}>...</Button>
+    <Button onClick={onReject}>...</Button>
+  </div>
+</div>
+```
+
+**Po:**
+
+```tsx
+<div className="space-y-6">
+  {/* Header with counter */}
+  <div className="flex items-center justify-between">
+    <div>
+      <h3 className="text-lg font-semibold">Propozycje AI</h3>
+      <p className="text-sm text-muted-foreground">
+        AI wygenerował {proposals.length} propozycji fiszek
+        {hasSelection && (
+          <span className="ml-2 font-medium text-foreground">
+            (zaznaczono: {selectedIndices.size})
+          </span>
+        )}
+      </p>
+    </div>
+  </div>
+
+  {/* Action buttons MOVED TO TOP */}
+  <div className="flex gap-3">
+    <Button
+      onClick={handleAccept}
+      disabled={!hasSelection}
+      size="lg"
+      className="flex-1"
+    >
+      Akceptuj zaznaczone ({selectedIndices.size})
+    </Button>
+    <Button
+      onClick={onReject}
+      variant="destructive"
+      size="lg"
+      className="flex-1"
+    >
+      Odrzuć wszystko
+    </Button>
+  </div>
+
+  {/* Helper text */}
+  <p className="text-sm text-muted-foreground">
+    Kliknij na fiszkę aby ją zaznaczyć lub odznaczyć
+  </p>
+
+  {/* Grid */}
+  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {proposals.map(...)}
+  </div>
+</div>
+```
+
+**Zmiany w strukturze:**
+
+- Przyciski akcji przeniesione z końca na początek (przed grid)
+- Dodano nagłówek `<h3>` dla lepszej hierarchii wizualnej
+- Dodano tekst pomocniczy "Kliknij na fiszkę..." dla onboardingu
+- Zachowano counter zaznaczonych w nawiasie przy przycisku "Akceptuj"
+
+**Uzasadnienie UX/UI:**
+
+1. **Prawo Fittsa** - Większy target area (cała karta zamiast małego checkboxa) = szybsza i łatwiejsza interakcja, szczególnie na urządzeniach mobilnych.
+
+2. **Mobile-First Design** - Touch targets na kartach (min. 44x44px) są znacznie bardziej przyjazne dla palców niż checkbox (typowo 16-20px).
+
+3. **Intuicyjność** - Pattern "kliknij na element aby go zaznaczyć" jest powszechnie znany z wielu aplikacji (Gmail, Zdjęcia Google, menedżery plików, galerie). Użytkownicy nie muszą się uczyć nowej interakcji.
+
+4. **Visual Clarity** - Usunięcie checkboxów redukuje visual clutter. Zielona obwódka + tło są wystarczającym wskaźnikiem zaznaczenia, bez dodatkowych elementów UI.
+
+5. **CTA Visibility** - Przyciski akcji na górze są widoczne od razu po wygenerowaniu propozycji, bez konieczności scrollowania. Użytkownik najpierw widzi "co może zrobić", potem wybiera "z czym".
+
+6. **Natural Flow** - Top-to-bottom flow: Instrukcja (tekst pomocniczy) → Akcje (przyciski) → Wybór (grid). To naturalny przepływ wzroku i logika decyzyjna: "co mam zrobić? → jak to zrobić? → z czym to zrobić?".
+
+7. **Accessibility** - Keyboard navigation (Enter/Space), ARIA attributes (`role="button"`, `aria-pressed`, `aria-label`) zapewniają dostępność dla screen readers i użytkowników klawiatury.
+
+8. **Progressive Enhancement** - Hover effects (`hover:shadow-md`, `hover:border-primary/50`) dają subtle feedback o interaktywności, bez nadmiernej animacji.
+
+**Wpływ na metrykę 75% akceptacji AI:**
+
+- Łatwiejsza i szybsza selekcja = mniejsza friction = większa szansa że użytkownicy zaakceptują propozycje zamiast je odrzucić z frustracji.
+- Przyciski na górze = mniejsze ryzyko że użytkownik "zapomni" zaakceptować i zamknie widok.
+- Tekst pomocniczy onboardingowy redukuje confusion przy pierwszym użyciu.

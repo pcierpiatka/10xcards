@@ -47,8 +47,9 @@ export function AiProposalsList({
 
   return (
     <div className="space-y-6">
-      {/* Header with count */}
-      <div className="flex items-center justify-between">
+      {/* Header with title and count */}
+      <div>
+        <h3 className="text-lg font-semibold">Propozycje AI</h3>
         <p className="text-sm text-muted-foreground">
           AI wygenerował {proposals.length} propozycji fiszek
           {hasSelection && (
@@ -58,6 +59,31 @@ export function AiProposalsList({
           )}
         </p>
       </div>
+
+      {/* Action buttons at top for better visibility */}
+      <div className="flex gap-3">
+        <Button
+          onClick={onReject}
+          variant="destructive"
+          size="lg"
+          className="flex-1"
+        >
+          Odrzuć wszystko
+        </Button>
+        <Button
+          onClick={handleAccept}
+          disabled={!hasSelection}
+          size="lg"
+          className="flex-1"
+        >
+          Akceptuj zaznaczone ({selectedIndices.size})
+        </Button>
+      </div>
+
+      {/* Helper text */}
+      <p className="text-sm text-muted-foreground text-center">
+        Kliknij aby zaznaczyć
+      </p>
 
       {/* Proposals grid - 3 columns on desktop */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -69,26 +95,6 @@ export function AiProposalsList({
             onToggle={() => toggleSelection(index)}
           />
         ))}
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-3">
-        <Button
-          onClick={handleAccept}
-          disabled={!hasSelection}
-          size="lg"
-          className="flex-1"
-        >
-          Akceptuj zaznaczone ({selectedIndices.size})
-        </Button>
-        <Button
-          onClick={onReject}
-          variant="destructive"
-          size="lg"
-          className="flex-1"
-        >
-          Odrzuć wszystko
-        </Button>
       </div>
     </div>
   );
