@@ -75,8 +75,54 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Refresh session if expired - this automatically updates the cookies
-  await supabase.auth.getSession();
+  // Get session from cookies
+  // NOTE: In middleware we can't use getUser() because it requires external fetch
+  // which is not available in Edge Runtime. getSession() reads from cookies only.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  console.log("[MIDDLEWARE]", {
+    pathname: request.nextUrl.pathname,
+    hasSession: !!session,
+    userId: session?.user?.id,
+  });
+
+  // Route protection logic
+  const { pathname } = request.nextUrl;
+
+  // Define route categories
+  const isAuthPage = [
+    "/login",
+    "/register",
+    "/password-reset",
+    "/update-password",
+  ].some((path) => pathname.startsWith(path));
+  const isProtectedPage = ["/dashboard", "/study", "/settings"].some((path) =>
+    pathname.startsWith(path)
+  );
+  const isProtectedApi =
+    pathname.startsWith("/api") &&
+    !pathname.startsWith("/api/auth") &&
+    !pathname.startsWith("/api/health");
+
+  // Redirect logic
+  // 1. Unauthenticated user trying to access protected route → redirect to /login
+  if (!session && (isProtectedPage || isProtectedApi)) {
+    console.log("[MIDDLEWARE] Redirecting to login:", pathname);
+    const loginUrl = new URL("/login", request.url);
+    // Store original URL to redirect back after login (optional for MVP)
+    if (isProtectedPage) {
+      loginUrl.searchParams.set("redirect", pathname);
+    }
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 2. Authenticated user trying to access auth page → redirect to /dashboard
+  if (session && isAuthPage) {
+    console.log("[MIDDLEWARE] Redirecting to dashboard from:", pathname);
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
 
   return response;
 }

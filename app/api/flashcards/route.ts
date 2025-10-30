@@ -12,7 +12,8 @@ import { FlashcardService } from "@/lib/services/flashcard-service.server";
 import { flashcardListQuerySchema } from "@/lib/validation/flashcard-validation";
 import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";
-import { DEV } from "@/lib/constants";
+import { requireAuth } from "@/lib/api/auth-utils";
+import { ApiError } from "@/lib/api/error-responses";
 
 /**
  * GET /api/flashcards
@@ -31,21 +32,13 @@ import { DEV } from "@/lib/constants";
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // 1. Authentication - verify Supabase JWT
+    // 1. Authentication - require valid user session
+    const user = await requireAuth();
+
+    // 2. Initialize Supabase client
     const supabase = await createClient();
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await supabase.auth.getUser();
 
-    // if (authError || !user) {
-    //   throw new AuthenticationError();
-    // }
-
-    // TODO: Remove hardcoded user ID after auth is working
-    const user = { id: DEV.USER_ID };
-
-    // 2. Parse and validate query parameters
+    // 3. Parse and validate query parameters
     const { searchParams } = new URL(request.url);
     const queryParams = {
       page: searchParams.get("page"),
@@ -55,23 +48,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const validationResult = flashcardListQuerySchema.safeParse(queryParams);
 
     if (!validationResult.success) {
-      const firstError = validationResult.error.errors[0];
+      const firstError = validationResult.error.issues[0];
       throw new ValidationError(firstError.message, {
         field: firstError.path.join("."),
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       });
     }
 
-    // 3. Initialize service with dependencies
+    // 4. Initialize service with dependencies
     const flashcardService = new FlashcardService(supabase);
 
-    // 4. Execute query
+    // 5. Execute query
     const result = await flashcardService.getFlashcards(
       user.id,
       validationResult.data
     );
 
-    // 5. Return 200 OK with flashcard list
+    // 6. Return 200 OK with flashcard list
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return handleError(error);
@@ -85,6 +78,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * @returns NextResponse with error details
  */
 function handleError(error: unknown): NextResponse<ErrorResponseDto> {
+  // Handle ApiError (from auth-utils)
+  if (error instanceof ApiError) {
+    return NextResponse.json(
+      {
+        status: error.statusCode,
+        message: error.message,
+      },
+      { status: error.statusCode }
+    );
+  }
+
   // Handle known application errors
   if (error instanceof AppError) {
     console.error(`[API] ${error.name}`, {

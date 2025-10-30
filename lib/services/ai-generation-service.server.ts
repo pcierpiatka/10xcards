@@ -101,7 +101,7 @@ export class AiGenerationService {
 
     if (!validationResult.success) {
       console.error("[AiGenerationService] Invalid AI response", {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
         proposalsCount: proposals.length,
       });
       throw new Error(

@@ -5,7 +5,7 @@
  * Generowanie może trwać 5-30 sekund, więc jasny feedback jest kluczowy dla UX.
  */
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 
 interface AiGenerationLoadingModalProps {
@@ -37,6 +37,9 @@ export function AiGenerationLoadingModal({
         // Hide close button (X)
         hideCloseButton
       >
+        {/* Hidden title for screen readers */}
+        <DialogTitle className="sr-only">Generowanie fiszek AI</DialogTitle>
+
         <div className="flex flex-col items-center gap-4 py-8">
           {/* Animated spinner */}
           <Loader2 className="h-12 w-12 animate-spin text-primary" />

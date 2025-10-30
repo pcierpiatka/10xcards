@@ -13,7 +13,8 @@ import { OpenRouterClient } from "@/lib/integrations/openrouter-client";
 import { createAiGenerationSchema } from "@/lib/validation/ai-generations";
 import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";
-import { DEV } from "@/lib/constants";
+import { requireAuth } from "@/lib/api/auth-utils";
+import { ApiError } from "@/lib/api/error-responses";
 
 /**
  * POST /api/ai/generations
@@ -30,33 +31,25 @@ import { DEV } from "@/lib/constants";
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // 1. Authentication - verify Supabase JWT
+    // 1. Authentication - require valid user session
+    const user = await requireAuth();
+
+    // 2. Initialize Supabase client
     const supabase = await createClient();
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await supabase.auth.getUser();
 
-    // if (authError || !user) {
-    //   throw new AuthenticationError();
-    // }
-
-    // TODO: Remove hardcoded user ID after auth is working
-    const user = { id: DEV.USER_ID };
-
-    // 2. Parse and validate request body
+    // 3. Parse and validate request body
     const body = await request.json();
     const validationResult = createAiGenerationSchema.safeParse(body);
 
     if (!validationResult.success) {
-      const firstError = validationResult.error.errors[0];
+      const firstError = validationResult.error.issues[0];
       throw new ValidationError(firstError.message, {
         field: firstError.path.join("."),
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       });
     }
 
-    // 3. Initialize service with dependencies
+    // 4. Initialize service with dependencies
     const openRouterClient = new OpenRouterClient();
     const aiGenerationService = new AiGenerationService(
       supabase,
@@ -83,6 +76,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * @returns NextResponse with error details
  */
 function handleError(error: unknown): NextResponse<ErrorResponseDto> {
+  // Handle ApiError (from auth-utils)
+  if (error instanceof ApiError) {
+    return NextResponse.json(
+      {
+        status: error.statusCode,
+        message: error.message,
+      },
+      { status: error.statusCode }
+    );
+  }
+
   // Handle known application errors
   if (error instanceof AppError) {
     console.error(`[API] ${error.name}`, {

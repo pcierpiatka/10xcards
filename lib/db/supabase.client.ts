@@ -23,5 +23,23 @@ export function createClient() {
     throw new Error("Missing Supabase environment variables");
   }
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name) {
+        // Read cookie from document.cookie
+        const cookie = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith(`${name}=`));
+        return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
+      },
+      set(name, value, options) {
+        // Write cookie to document.cookie
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=${options.path || "/"}; max-age=${options.maxAge || 31536000}; SameSite=${options.sameSite || "Lax"}${options.secure ? "; Secure" : ""}`;
+      },
+      remove(name, options) {
+        // Remove cookie by setting max-age=0
+        document.cookie = `${name}=; path=${options.path || "/"}; max-age=0`;
+      },
+    },
+  });
 }
