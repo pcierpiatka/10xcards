@@ -55,10 +55,11 @@
 ## 3. System Autentykacji - Supabase Auth
 
 - Konfiguracja klienta Supabase HTTP i Admin.
-- Wykorzystanie `@supabase/auth-helpers-nextjs` do zarządzania sesjami.
+- Wykorzystanie `@supabase/ssr` do zarządzania sesjami (nowoczesny, framework-agnostic package).
 - Token JWT przechowywany w bezpiecznych ciasteczkach `httpOnly` i `secure`.
 - Obsługa potwierdzania adresu e-mail i resetu hasła przez Supabase.
 - Dostęp do sesji zarówno po stronie klienta React, jak i po stronie serwera Next.js.
+- Wykorzystanie `getUser()` zamiast `getSession()` dla bezpiecznej weryfikacji JWT.
 
 ---
 

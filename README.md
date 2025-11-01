@@ -4,13 +4,32 @@ AI-powered flashcard generator for efficient learning.
 
 ## Tech Stack
 
-- [Next.js](https://nextjs.org/) v15 - React framework
+### Frontend
+
+- [Next.js](https://nextjs.org/) v15 - React framework with App Router & SSR
 - [React](https://react.dev/) v19 - UI library
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type safety
+- [TypeScript](https://www.typescriptlang.org/) v5 - Type safety (strict mode)
 - [Tailwind CSS](https://tailwindcss.com/) v4 - Utility-first CSS framework
-- [shadcn/ui](https://ui.shadcn.com/) - Accessible React components
-- [Supabase](https://supabase.com/) - Backend & Auth
-- [OpenRouter](https://openrouter.ai/) - AI models
+- [shadcn/ui](https://ui.shadcn.com/) - Accessible React components (Radix UI)
+
+### Backend
+
+- [Supabase](https://supabase.com/) - PostgreSQL database, Auth & BaaS (@supabase/ssr)
+- [OpenRouter](https://openrouter.ai/) - AI models (gpt-4o-mini)
+
+### Testing
+
+- [Vitest](https://vitest.dev/) v2.0 - Unit & integration tests
+- [Playwright](https://playwright.dev/) v1.48 - E2E tests (cross-browser)
+- [React Testing Library](https://testing-library.com/react) v16.1 - Component tests
+- [MSW](https://mswjs.io/) v2.6 - API mocking
+- [k6](https://k6.io/) - Performance testing
+
+### DevOps
+
+- [Docker](https://www.docker.com/) - Containerization
+- [GitHub Actions](https://github.com/features/actions) - CI/CD
+- [DigitalOcean](https://www.digitalocean.com/) - Hosting
 
 ## Prerequisites
 
@@ -124,6 +143,72 @@ npm run start
 - `npm run lint:fix` - Fix ESLint issues
 - `npm run format` - Format code with Prettier
 - `npx tsc --noEmit` - Type check without emitting files
+
+## Testing
+
+The project uses a comprehensive testing strategy with multiple test types:
+
+### Test Frameworks
+
+- **Vitest** - Unit and integration tests (fast, TypeScript-native)
+- **Playwright** - End-to-end tests (cross-browser support)
+- **React Testing Library** - Component tests
+- **MSW** (Mock Service Worker) - API mocking
+- **k6** - Performance and load testing
+- **playwright-lighthouse** - Performance audits
+
+### Running Tests
+
+```bash
+# Unit and Integration Tests
+npm run test                    # Run all tests
+npm run test:unit              # Run unit tests only
+npm run test:integration       # Run integration tests only
+npm run test:coverage          # Run tests with coverage report
+
+# End-to-End Tests
+npm run test:e2e               # Run E2E tests (all browsers)
+npm run test:e2e -- --ui       # Run E2E tests in debug mode
+npx playwright test --project=chromium  # Run E2E in specific browser
+
+# Performance Tests
+npm run test:performance       # Run performance benchmarks
+
+# Security Tests
+npm run test:security          # Run security tests
+```
+
+### Test Coverage
+
+The project aims for:
+
+- **Unit tests**: ≥ 80% coverage for `lib/` directory
+- **Integration tests**: 100% coverage for API routes
+- **E2E tests**: 100% coverage for critical user journeys (US-001 to US-015)
+
+View coverage report:
+
+```bash
+npm run test:coverage
+open coverage/index.html
+```
+
+### Test Database Setup
+
+For integration and E2E tests, use the test database:
+
+```bash
+# Start test database
+docker-compose -f docker-compose.test.yml up -d
+
+# Run tests
+npm run test:all
+
+# Stop test database
+docker-compose -f docker-compose.test.yml down
+```
+
+See `.ai/test-plan.md` for detailed testing strategy and implementation guide.
 
 ## Local Development Helper Scripts
 
