@@ -213,36 +213,6 @@ npx playwright show-report
 
 **Note:** E2E tests require the application to be running. Playwright automatically starts the dev server (`npm run dev`) before running tests via `webServer` configuration in `playwright.config.ts`.
 
-### Test Coverage
-
-The project follows the **Test Pyramid** approach:
-
-```
-       🔺 3 E2E tests (critical user flows)
-   🔺🔺🔺🔺 Integration tests (hooks + API routes)
- 🔺🔺🔺🔺🔺🔺 Component tests (UI in isolation)
-🟢🟢🟢🟢🟢🟢🟢 Unit tests (validation, utilities)
-```
-
-**Current coverage:**
-
-- **Unit tests**: ≥ 80% coverage for `lib/` directory ✅
-- **E2E tests**: Critical auth flows (login, register, logout) ✅
-- **Integration tests**: Planned (see `.claude/tasks/auth-test-coverage-plan.md`)
-- **Component tests**: Planned (see `.claude/tasks/auth-test-coverage-plan.md`)
-
-**Coverage targets:**
-
-```bash
-# Unit test coverage
-npm run test:coverage
-
-# E2E test coverage (critical user journeys)
-npm run test:e2e  # 100% coverage for auth flows
-```
-
-See `.ai/test-plan.md` for detailed testing strategy and `.claude/tasks/auth-test-coverage-plan.md` for implementation roadmap.
-
 ## Local Development Helper Scripts
 
 The `local-dev-scripts/` directory contains bash scripts for common development tasks:
@@ -293,21 +263,33 @@ The `local-dev-scripts/` directory contains bash scripts for common development 
 
 ```
 .
+├── .ai/                  # Project documentation and plans (PRD, tech stack)
+├── .claude/tasks/        # Implementation task plans
 ├── app/                  # Next.js App Router pages and layouts
-│   └── api/              # API routes (health check)
+│   └── api/              # API routes (auth, flashcards, ai-generations)
 ├── components/           # React components
+│   ├── auth/             # Authentication forms
+│   ├── dashboard/        # Dashboard components
 │   └── ui/               # shadcn/ui reusable components
+├── docker/               # Docker configuration and volumes
+│   └── volumes/db/migrations/  # Database schema migrations
+├── e2e/                  # Playwright E2E tests
+│   ├── auth/             # Auth flow tests (login, register)
+│   └── utils/            # Test helpers and utilities
+├── hooks/                # React custom hooks (useAuth, useDashboardManager)
 ├── lib/                  # Utilities and shared code
 │   ├── db/               # Supabase clients and database schema types
 │   ├── dto/              # Data Transfer Objects (API contracts)
-│   └── types/            # Application domain types (API, business logic)
-├── docker/               # Docker configuration and volumes
-│   └── volumes/db/migrations/  # Database schema migrations
+│   ├── integrations/     # External API integrations (OpenRouter)
+│   ├── types/            # Application domain types
+│   └── validations/      # Zod validation schemas
 ├── local-dev-scripts/    # Development helper scripts
 │   ├── create-supabase-db-structure.sh  # Initialize database
 │   ├── disable-rls.sh    # Disable Row Level Security for testing
 │   └── enable-rls.sh     # Re-enable Row Level Security
-└── public/               # Static assets (favicon, robots.txt)
+├── public/               # Static assets (favicon, robots.txt)
+├── playwright.config.ts  # Playwright E2E test configuration
+└── vitest.config.ts      # Vitest unit test configuration
 ```
 
 ## Code Quality
