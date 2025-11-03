@@ -59,6 +59,7 @@ export function RegisterForm() {
                     type="email"
                     placeholder="twoj@email.com"
                     autoComplete="email"
+                    data-testid="register-email"
                     {...field}
                   />
                 </FormControl>
@@ -78,13 +79,14 @@ export function RegisterForm() {
                     type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    data-testid="register-password"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription className="text-xs">
                   Min. 8 znaków, wielka i mała litera, cyfra
                 </FormDescription>
-                <FormMessage />
+                <FormMessage data-testid="register-password-error" />
               </FormItem>
             )}
           />
@@ -100,21 +102,30 @@ export function RegisterForm() {
                     type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    data-testid="register-confirm-password"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage data-testid="register-confirm-password-error" />
               </FormItem>
             )}
           />
 
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div
+              className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              data-testid="register-error"
+            >
               {error}
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading}
+            data-testid="register-submit"
+          >
             {isLoading ? "Tworzenie konta..." : "Zarejestruj się"}
           </Button>
         </form>
@@ -122,7 +133,11 @@ export function RegisterForm() {
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">Masz już konto? </span>
-        <Link href="/login" className="font-medium hover:underline">
+        <Link
+          href="/login"
+          className="font-medium hover:underline"
+          data-testid="register-login-link"
+        >
           Zaloguj się
         </Link>
       </div>

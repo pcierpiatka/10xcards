@@ -13,7 +13,11 @@
     "test": "vitest",
     "test:unit": "vitest --run",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -46,6 +50,7 @@
   "devDependencies": {
     "@eslint/compat": "1.2.7",
     "@eslint/js": "9.23.0",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.1.14",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -55,6 +60,7 @@
     "@vitejs/plugin-react": "^5.1.0",
     "@vitest/ui": "^2.1.9",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.3",
     "eslint": "9.23.0",
     "eslint-config-next": "^15.5.4",
     "eslint-config-prettier": "10.1.1",

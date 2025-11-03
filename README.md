@@ -153,38 +153,18 @@ The project uses a comprehensive testing strategy with multiple test types:
 - **Vitest** - Unit and integration tests (fast, TypeScript-native)
 - **Playwright** - End-to-end tests (cross-browser support)
 - **React Testing Library** - Component tests
-- **MSW** (Mock Service Worker) - API mocking
-- **k6** - Performance and load testing
-- **playwright-lighthouse** - Performance audits
+- **MSW** (Mock Service Worker) - API mocking (planned)
 
 ### Running Tests
 
+#### Unit and Integration Tests
+
 ```bash
-# Unit and Integration Tests
-npm run test                    # Run all tests
-npm run test:unit              # Run unit tests only
-npm run test:integration       # Run integration tests only
+npm run test                    # Run all unit tests in watch mode
+npm run test:unit              # Run unit tests once
 npm run test:coverage          # Run tests with coverage report
-
-# End-to-End Tests
-npm run test:e2e               # Run E2E tests (all browsers)
-npm run test:e2e -- --ui       # Run E2E tests in debug mode
-npx playwright test --project=chromium  # Run E2E in specific browser
-
-# Performance Tests
-npm run test:performance       # Run performance benchmarks
-
-# Security Tests
-npm run test:security          # Run security tests
+npm run test:ui                # Run tests with Vitest UI
 ```
-
-### Test Coverage
-
-The project aims for:
-
-- **Unit tests**: ≥ 80% coverage for `lib/` directory
-- **Integration tests**: 100% coverage for API routes
-- **E2E tests**: 100% coverage for critical user journeys (US-001 to US-015)
 
 View coverage report:
 
@@ -193,22 +173,75 @@ npm run test:coverage
 open coverage/index.html
 ```
 
-### Test Database Setup
+#### End-to-End Tests (Playwright)
 
-For integration and E2E tests, use the test database:
+**First-time setup:**
 
 ```bash
-# Start test database
-docker-compose -f docker-compose.test.yml up -d
-
-# Run tests
-npm run test:all
-
-# Stop test database
-docker-compose -f docker-compose.test.yml down
+# Install Playwright browsers (only needed once)
+npx playwright install chromium
 ```
 
-See `.ai/test-plan.md` for detailed testing strategy and implementation guide.
+**Running E2E tests:**
+
+```bash
+# Run E2E tests (headless mode, fast)
+npm run test:e2e
+
+# Run E2E tests with visible browser (headed mode)
+npm run test:e2e:headed
+
+# Run E2E tests in interactive UI mode (best for debugging)
+npm run test:e2e:ui
+
+# Run E2E tests in debug mode (step-by-step execution)
+npm run test:e2e:debug
+
+# Run specific test file
+npm run test:e2e e2e/auth/login.spec.ts
+
+# Run specific test file in headed mode
+npm run test:e2e:headed e2e/auth/login.spec.ts
+```
+
+**View test reports:**
+
+```bash
+# Open last HTML report (after running tests)
+npx playwright show-report
+```
+
+**Note:** E2E tests require the application to be running. Playwright automatically starts the dev server (`npm run dev`) before running tests via `webServer` configuration in `playwright.config.ts`.
+
+### Test Coverage
+
+The project follows the **Test Pyramid** approach:
+
+```
+       🔺 3 E2E tests (critical user flows)
+   🔺🔺🔺🔺 Integration tests (hooks + API routes)
+ 🔺🔺🔺🔺🔺🔺 Component tests (UI in isolation)
+🟢🟢🟢🟢🟢🟢🟢 Unit tests (validation, utilities)
+```
+
+**Current coverage:**
+
+- **Unit tests**: ≥ 80% coverage for `lib/` directory ✅
+- **E2E tests**: Critical auth flows (login, register, logout) ✅
+- **Integration tests**: Planned (see `.claude/tasks/auth-test-coverage-plan.md`)
+- **Component tests**: Planned (see `.claude/tasks/auth-test-coverage-plan.md`)
+
+**Coverage targets:**
+
+```bash
+# Unit test coverage
+npm run test:coverage
+
+# E2E test coverage (critical user journeys)
+npm run test:e2e  # 100% coverage for auth flows
+```
+
+See `.ai/test-plan.md` for detailed testing strategy and `.claude/tasks/auth-test-coverage-plan.md` for implementation roadmap.
 
 ## Local Development Helper Scripts
 

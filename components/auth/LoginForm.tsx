@@ -57,10 +57,11 @@ export function LoginForm() {
                     type="email"
                     placeholder="twoj@email.com"
                     autoComplete="email"
+                    data-testid="login-email"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage data-testid="login-email-error" />
               </FormItem>
             )}
           />
@@ -76,21 +77,30 @@ export function LoginForm() {
                     type="password"
                     placeholder="••••••••"
                     autoComplete="current-password"
+                    data-testid="login-password"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage data-testid="login-password-error" />
               </FormItem>
             )}
           />
 
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div
+              className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              data-testid="login-error"
+            >
               {error}
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading}
+            data-testid="login-submit"
+          >
             {isLoading ? "Logowanie..." : "Zaloguj się"}
           </Button>
         </form>
@@ -100,12 +110,17 @@ export function LoginForm() {
         <Link
           href="/password-reset"
           className="text-muted-foreground hover:text-foreground underline"
+          data-testid="login-reset-link"
         >
           Zapomniałeś hasła?
         </Link>
         <div>
           <span className="text-muted-foreground">Nie masz konta? </span>
-          <Link href="/register" className="font-medium hover:underline">
+          <Link
+            href="/register"
+            className="font-medium hover:underline"
+            data-testid="login-register-link"
+          >
             Zarejestruj się
           </Link>
         </div>
