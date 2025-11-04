@@ -1,4 +1,4 @@
-# 10x Cards
+# 10x Cards.pl
 
 AI-powered flashcard generator for efficient learning.
 
