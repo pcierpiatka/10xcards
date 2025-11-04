@@ -3,6 +3,7 @@ name: Pull Request Checks
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
   # Allow manual trigger for testing
   workflow_dispatch:
 
@@ -115,7 +116,7 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
-        continue-on-error: true
+        continue-on-error: false
         id: e2e
 
       - name: Upload E2E test results
@@ -203,7 +204,7 @@ jobs:
 
             ### ℹ️ Next Steps
 
-            ${codeQualityStatus === 'failure' || unitTestsStatus === 'failure' || buildStatus === 'failure'
+            ${codeQualityStatus === 'failure' || unitTestsStatus === 'failure' || e2eTestsStatus === 'failure' || buildStatus === 'failure'
               ? '❌ **Action Required**: Fix failing checks before merge'
               : '✅ All required checks passed! Ready for review.'}
 
@@ -245,7 +246,7 @@ jobs:
   create-issue:
     name: Create Issue on Failure
     runs-on: ubuntu-latest
-    needs: [code-quality, unit-tests, build]
+    needs: [code-quality, unit-tests, e2e-tests, build]
     if: failure() && github.event_name == 'pull_request'
     steps:
       - name: Create GitHub Issue
@@ -259,11 +260,13 @@ jobs:
 
             const codeQualityStatus = '${{ needs.code-quality.result }}';
             const unitTestsStatus = '${{ needs.unit-tests.result }}';
+            const e2eTestsStatus = '${{ needs.e2e-tests.result }}';
             const buildStatus = '${{ needs.build.result }}';
 
             let failureDetails = [];
             if (codeQualityStatus === 'failure') failureDetails.push('Code Quality (ESLint/TypeScript)');
             if (unitTestsStatus === 'failure') failureDetails.push('Unit Tests');
+            if (e2eTestsStatus === 'failure') failureDetails.push('E2E Tests');
             if (buildStatus === 'failure') failureDetails.push('Build');
 
             const issueBody = `## 🚨 Critical CI/CD Failure in PR #${prNumber}
@@ -339,7 +342,7 @@ jobs:
   close-issue:
     name: Close Issue on Success
     runs-on: ubuntu-latest
-    needs: [code-quality, unit-tests, build]
+    needs: [code-quality, unit-tests, e2e-tests, build]
     if: success() && github.event_name == 'pull_request'
     steps:
       - name: Close related GitHub Issue

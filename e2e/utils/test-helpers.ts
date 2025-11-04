@@ -5,7 +5,7 @@ import { Page, expect } from "@playwright/test";
  * Uses timestamp + random string to ensure uniqueness across parallel tests
  */
 export function generateTestEmail(): string {
-  return `test-${Date.now()}-${Math.random().toString(36).substring(7)}@example.com`;
+  return `test-${Date.now()}-${Math.random().toString(36).substring(7)}@myLittlePonny.org.edu.pl`;
 }
 
 /**
