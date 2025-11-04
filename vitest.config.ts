@@ -9,6 +9,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     exclude: ["node_modules/**", "e2e/**", ".next/**"],
+    environmentOptions: {
+      jsdom: {
+        url: "http://localhost",
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
