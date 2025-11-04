@@ -1,0 +1,375 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main]
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: write
+
+jobs:
+  # Job 1: Code Quality (Linting + Type Checking)
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Check formatting with Prettier
+        run: npx prettier --check "**/*.{ts,tsx,js,jsx,json,css,md}"
+
+  # Job 2: Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+      - name: Generate coverage summary
+        if: always()
+        id: coverage
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            COVERAGE=$(node -pe "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total.lines.pct")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "Coverage: $COVERAGE%"
+          else
+            echo "percentage=0" >> $GITHUB_OUTPUT
+            echo "No coverage file found"
+          fi
+
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+
+  # Job 3: E2E Tests (Optional - only if E2E tests exist)
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        continue-on-error: true
+        id: e2e
+
+      - name: Upload E2E test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: playwright-report/
+          retention-days: 7
+
+    outputs:
+      e2e-status: ${{ steps.e2e.outcome }}
+
+  # Job 4: Build Verification
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: .next/
+          retention-days: 3
+
+  # Job 5: PR Summary Comment
+  pr-summary:
+    name: PR Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, e2e-tests, build]
+    if: always() && github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const codeQualityStatus = '${{ needs.code-quality.result }}';
+            const unitTestsStatus = '${{ needs.unit-tests.result }}';
+            const e2eTestsStatus = '${{ needs.e2e-tests.result }}';
+            const buildStatus = '${{ needs.build.result }}';
+            const coverage = '${{ needs.unit-tests.outputs.coverage }}';
+
+            const statusEmoji = (status) => {
+              if (status === 'success') return '✅';
+              if (status === 'failure') return '❌';
+              if (status === 'skipped') return '⏭️';
+              return '⚠️';
+            };
+
+            const body = `## 🤖 Automatic Code Review - PR Checks
+
+            ### Test Results Summary
+
+            | Check | Status | Details |
+            |-------|--------|---------|
+            | Code Quality (ESLint + TypeScript) | ${statusEmoji(codeQualityStatus)} ${codeQualityStatus} | Linting and type checking |
+            | Unit Tests | ${statusEmoji(unitTestsStatus)} ${unitTestsStatus} | Coverage: ${coverage}% |
+            | E2E Tests | ${statusEmoji(e2eTestsStatus)} ${e2eTestsStatus} | Playwright integration tests |
+            | Build | ${statusEmoji(buildStatus)} ${buildStatus} | Production build verification |
+
+            ### 📊 Coverage Report
+
+            Test coverage: **${coverage}%**
+            ${coverage < 80 ? '⚠️ Coverage is below 80% threshold' : '✅ Coverage meets threshold'}
+
+            ### ℹ️ Next Steps
+
+            ${codeQualityStatus === 'failure' || unitTestsStatus === 'failure' || buildStatus === 'failure'
+              ? '❌ **Action Required**: Fix failing checks before merge'
+              : '✅ All required checks passed! Ready for review.'}
+
+            ---
+            *Automated comment generated by GitHub Actions*
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Automatic Code Review - PR Checks')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  # Job 6: Create Issue on Critical Failure
+  create-issue:
+    name: Create Issue on Failure
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, build]
+    if: failure() && github.event_name == 'pull_request'
+    steps:
+      - name: Create GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const prTitle = context.payload.pull_request.title;
+            const prAuthor = context.payload.pull_request.user.login;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const codeQualityStatus = '${{ needs.code-quality.result }}';
+            const unitTestsStatus = '${{ needs.unit-tests.result }}';
+            const buildStatus = '${{ needs.build.result }}';
+
+            let failureDetails = [];
+            if (codeQualityStatus === 'failure') failureDetails.push('Code Quality (ESLint/TypeScript)');
+            if (unitTestsStatus === 'failure') failureDetails.push('Unit Tests');
+            if (buildStatus === 'failure') failureDetails.push('Build');
+
+            const issueBody = `## 🚨 Critical CI/CD Failure in PR #${prNumber}
+
+            **PR Title**: ${prTitle}
+            **PR Author**: @${prAuthor}
+            **Failed Checks**: ${failureDetails.join(', ')}
+
+            ### Details
+
+            The following critical checks failed in PR #${prNumber}:
+
+            ${failureDetails.map(check => `- ❌ ${check}`).join('\n')}
+
+            ### Action Required
+
+            1. Review the [failed workflow run](${runUrl})
+            2. Fix the issues in the PR branch
+            3. Push new commits to re-trigger checks
+            4. This issue will be automatically closed when checks pass
+
+            ### Links
+
+            - [View PR #${prNumber}](${context.payload.pull_request.html_url})
+            - [View Workflow Run](${runUrl})
+
+            ---
+            *This issue was automatically created by GitHub Actions*
+            `;
+
+            // Check if issue already exists for this PR
+            const { data: existingIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'ci-failure',
+              creator: 'github-actions[bot]'
+            });
+
+            const existingIssue = existingIssues.find(issue =>
+              issue.title.includes(`PR #${prNumber}`)
+            );
+
+            if (existingIssue) {
+              // Update existing issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: issueBody,
+                state: 'open'
+              });
+
+              // Add comment about new failure
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `🔄 Checks still failing. [View latest run](${runUrl})`
+              });
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 CI/CD Failure: PR #${prNumber} - ${prTitle}`,
+                body: issueBody,
+                labels: ['ci-failure', 'automated']
+              });
+            }
+
+  # Job 7: Close Issue on Success
+  close-issue:
+    name: Close Issue on Success
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, build]
+    if: success() && github.event_name == 'pull_request'
+    steps:
+      - name: Close related GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+
+            // Find open issue for this PR
+            const { data: existingIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'ci-failure',
+              creator: 'github-actions[bot]'
+            });
+
+            const existingIssue = existingIssues.find(issue =>
+              issue.title.includes(`PR #${prNumber}`)
+            );
+
+            if (existingIssue) {
+              // Close the issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                state: 'closed'
+              });
+
+              // Add closing comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: '✅ All checks are now passing! Automatically closing this issue.'
+              });
+            }

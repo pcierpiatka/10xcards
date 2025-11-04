@@ -1,9 +1,9 @@
 name: Build and Deploy
 
+# This workflow runs on main branch after PR is merged
+# For PR checks, see pr-checks.yml
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 
 jobs:
