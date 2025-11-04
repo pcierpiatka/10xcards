@@ -1,4 +1,4 @@
-# 10x Cards
+# 10x Cards - my test
 
 AI-powered flashcard generator for efficient learning.
 
