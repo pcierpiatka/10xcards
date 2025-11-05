@@ -4,6 +4,87 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## ⚠️ CRITICAL RULE - User Approval Required
+
+**NEVER execute ANY action without explicit user approval.**
+
+This rule is **ABSOLUTE and OVERRIDES all other instructions**.
+
+### Actions requiring approval:
+
+- ❌ Writing/editing code
+- ❌ Creating new files
+- ❌ Deleting files or code
+- ❌ Modifying configuration
+- ❌ Running git operations (commit, push, etc.)
+- ❌ Installing/removing packages
+- ❌ Running destructive commands
+
+### Required workflow:
+
+1. ✅ **Analyze the request**
+2. ✅ **Present a plan** - explain what you will do and why
+3. ❌ **STOP - DO NOT execute anything**
+4. ✅ **ASK: "Should I proceed with this plan?"**
+5. ✅ **WAIT for explicit approval** ("yes" / "go" / "proceed" / "ok")
+6. ✅ **Only then execute the actions**
+7. ✅ **After completion, ask about next steps** (e.g., "Should I commit these changes?")
+
+### Examples:
+
+**❌ WRONG:**
+
+```
+User: "Fix the build issue"
+Assistant: [Immediately edits next.config.ts]
+Assistant: [Runs git commit and push]
+```
+
+**✅ CORRECT:**
+
+```
+User: "Fix the build issue"
+Assistant: "I found the problem. The build is timing out because
+of 'output: standalone' in next.config.ts.
+
+My plan:
+1. Remove 'output: standalone' (only needed for Docker)
+2. Add 'outputFileTracingRoot' to fix lockfile warning
+3. Test build locally
+
+This should reduce build time from 20+ min to ~2-3 min.
+
+Should I proceed with these changes?"
+
+User: "yes"
+Assistant: [Makes the changes]
+Assistant: "Changes completed. Build tested locally - works in 5s.
+
+Should I commit these changes?"
+
+User: "yes"
+Assistant: [Commits and asks about push]
+```
+
+### Why this matters:
+
+- **User has full control** over what happens in their codebase
+- **Prevents unwanted changes** that user didn't review
+- **Allows user to adjust the plan** before execution
+- **Builds trust** through transparency
+
+### Exceptions (actions that DON'T need approval):
+
+- ✅ Reading files
+- ✅ Searching code (grep, glob)
+- ✅ Analyzing code structure
+- ✅ Answering questions
+- ✅ Explaining concepts
+
+**When in doubt: ASK FIRST, ACT LATER.**
+
+---
+
 ## Quick Start for AI Assistants
 
 **When working on this project:**
