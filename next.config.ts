@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone", // Required for Docker deployment
+  // output: "standalone", // Only for Docker - disabled for Cloudflare Pages
   reactStrictMode: true,
+
+  // Fix for multiple lockfiles warning
+  outputFileTracingRoot: process.cwd(),
+
   typescript: {
     ignoreBuildErrors: false,
   },
