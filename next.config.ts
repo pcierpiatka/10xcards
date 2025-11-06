@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // output: "standalone", // Only for Docker - disabled for Cloudflare Pages
+  // output: "standalone", // For Docker deployments only
   reactStrictMode: true,
 
   // Fix for multiple lockfiles warning
