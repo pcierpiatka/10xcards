@@ -15,23 +15,27 @@ export async function GlobalHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-        {/* Logo / Brand */}
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl">10xCards</span>
-        </Link>
+      <div className="container mx-auto flex h-16 items-center justify-between">
+        {/* Left side: Logo + Dashboard */}
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="font-bold text-xl">10xCards</span>
+          </Link>
+          {session && (
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium hover:underline"
+            >
+              Dashboard
+            </Link>
+          )}
+        </div>
 
-        {/* Navigation */}
+        {/* Right side: User menu or Auth buttons */}
         <nav className="flex items-center gap-3">
           {session ? (
             // Authenticated state
             <>
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium hover:underline"
-              >
-                Dashboard
-              </Link>
               <span className="text-sm text-muted-foreground">
                 {session.user.email}
               </span>
