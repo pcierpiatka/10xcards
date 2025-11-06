@@ -1,0 +1,138 @@
+name: Deploy to Production (Vercel)
+
+# Triggers: manual or push to release branch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release
+
+jobs:
+  deploy-production:
+    name: Deploy to Vercel Production
+    environment: production
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository with full history for rebase
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for rebase
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Configure Git
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Step 3: Rebase release onto main
+      - name: Rebase release branch onto main
+        run: |
+          git checkout release
+          git rebase origin/main
+          echo "✅ Release branch rebased onto main"
+
+      # Step 4: Push release branch
+      - name: Push release branch
+        run: |
+          git push origin release --force-with-lease
+          echo "✅ Release branch pushed"
+
+      # Step 5: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # Step 6: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 7: Lint
+      - name: Run ESLint
+        run: npm run lint
+
+      # Step 8: Unit tests (CRITICAL - fail stops deployment)
+      - name: Run unit tests
+        run: npm run test:unit
+
+      # Step 9: Build Next.js
+      - name: Build production
+        run: npm run build
+
+      # Step 10: Calculate next tag version
+      - name: Calculate next tag version
+        id: tag
+        run: |
+          # Get latest tag matching v*.*.* pattern
+          LATEST_TAG=$(git tag -l "v*.*.*" | sort -V | tail -n1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, start with v1.0.0
+            NEW_TAG="v1.0.0"
+          else
+            # Extract version numbers
+            VERSION=${LATEST_TAG#v}
+            MAJOR=$(echo $VERSION | cut -d. -f1)
+            MINOR=$(echo $VERSION | cut -d. -f2)
+            PATCH=$(echo $VERSION | cut -d. -f3)
+
+            # Increment patch version
+            NEW_PATCH=$((PATCH + 1))
+            NEW_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+
+          echo "previous_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo "new_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
+          echo "📦 New version: ${NEW_TAG} (previous: ${LATEST_TAG:-none})"
+
+      # Step 11: Create and push tag
+      - name: Create and push tag
+        run: |
+          git tag ${{ steps.tag.outputs.new_tag }}
+          git push origin ${{ steps.tag.outputs.new_tag }}
+          echo "✅ Tag ${{ steps.tag.outputs.new_tag }} created and pushed"
+
+      # Step 12: Deploy to Vercel (Production)
+      - name: Deploy to Vercel (Production)
+        run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      # Step 13: Generate release notes
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          if [ -z "${{ steps.tag.outputs.previous_tag }}" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log ${{ steps.tag.outputs.previous_tag }}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+
+          # Save to file for multiline handling
+          echo "${COMMITS}" > release_notes.txt
+          echo "📝 Release notes generated"
+
+      # Step 14: Create GitHub Release
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.new_tag }}
+          release_name: Release ${{ steps.tag.outputs.new_tag }}
+          body_path: release_notes.txt
+          draft: false
+          prerelease: false
+
+      # Step 15: Summary
+      - name: Deployment summary
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo "📦 Version: ${{ steps.tag.outputs.new_tag }}"
+          echo "🌐 Vercel: https://10xcards.vercel.app"
+          echo "📋 GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag.outputs.new_tag }}"
