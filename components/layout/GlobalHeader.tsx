@@ -22,7 +22,7 @@ export async function GlobalHeader() {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-3">
           {session ? (
             // Authenticated state
             <>
@@ -32,6 +32,9 @@ export async function GlobalHeader() {
               >
                 Dashboard
               </Link>
+              <span className="text-sm text-muted-foreground">
+                {session.user.email}
+              </span>
               <UserMenu email={session.user.email || "User"} />
             </>
           ) : (
