@@ -14,6 +14,7 @@ import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";
 import { requireAuth } from "@/lib/api/auth-utils";
 import { ApiError } from "@/lib/api/error-responses";
+import { requireFeature } from "@/lib/features";
 
 /**
  * GET /api/flashcards
@@ -32,13 +33,17 @@ import { ApiError } from "@/lib/api/error-responses";
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // 1. Authentication - require valid user session
+    // 1. Feature flag guard - check BEFORE any business logic
+    const guardError = requireFeature("flashcards.list");
+    if (guardError) return guardError;
+
+    // 2. Authentication - require valid user session
     const user = await requireAuth();
 
-    // 2. Initialize Supabase client
+    // 3. Initialize Supabase client
     const supabase = await createClient();
 
-    // 3. Parse and validate query parameters
+    // 4. Parse and validate query parameters
     const { searchParams } = new URL(request.url);
     const queryParams = {
       page: searchParams.get("page"),
@@ -55,16 +60,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // 4. Initialize service with dependencies
+    // 5. Initialize service with dependencies
     const flashcardService = new FlashcardService(supabase);
 
-    // 5. Execute query
+    // 6. Execute query
     const result = await flashcardService.getFlashcards(
       user.id,
       validationResult.data
     );
 
-    // 6. Return 200 OK with flashcard list
+    // 7. Return 200 OK with flashcard list
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return handleError(error);

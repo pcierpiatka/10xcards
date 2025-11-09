@@ -8,6 +8,7 @@ import { AiProposalsList } from "./AiProposalsList";
 import { AiGenerationLoadingModal } from "./AiGenerationLoadingModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { FeatureFlag } from "@/lib/features";
 
 /**
  * DashboardView - Main dashboard page component
@@ -69,16 +70,18 @@ export function DashboardView() {
       <h1 className="mb-8 text-3xl font-bold">Dashboard</h1>
 
       {/* AI Generator Form */}
-      <div className="mb-8 rounded-lg border p-6">
-        <h2 className="mb-4 text-xl font-semibold">
-          Wygeneruj fiszki za pomocą AI
-        </h2>
-        <AiGeneratorForm
-          key={formResetKey}
-          isGenerating={isGeneratingAi}
-          onSubmit={generateAiProposals}
-        />
-      </div>
+      <FeatureFlag name="flashcards.create.ai">
+        <div className="mb-8 rounded-lg border p-6">
+          <h2 className="mb-4 text-xl font-semibold">
+            Wygeneruj fiszki za pomocą AI
+          </h2>
+          <AiGeneratorForm
+            key={formResetKey}
+            isGenerating={isGeneratingAi}
+            onSubmit={generateAiProposals}
+          />
+        </div>
+      </FeatureFlag>
 
       {/* AI Proposals List (conditional) */}
       {aiProposals && (
@@ -97,18 +100,20 @@ export function DashboardView() {
       {/* TODO: Step 9 - ManualFlashcardForm (conditional) */}
 
       {/* Flashcard List or Empty State */}
-      {hasFlashcards ? (
-        <FlashcardList
-          flashcards={flashcards}
-          hasMore={hasMore}
-          isLoadingMore={isLoadingMore}
-          onLoadMore={loadMoreFlashcards}
-          onUpdate={updateFlashcard}
-          onDelete={deleteFlashcard}
-        />
-      ) : (
-        <EmptyState />
-      )}
+      <FeatureFlag name="flashcards.list">
+        {hasFlashcards ? (
+          <FlashcardList
+            flashcards={flashcards}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={loadMoreFlashcards}
+            onUpdate={updateFlashcard}
+            onDelete={deleteFlashcard}
+          />
+        ) : (
+          <EmptyState />
+        )}
+      </FeatureFlag>
 
       {/* AI Generation Loading Modal */}
       <AiGenerationLoadingModal isOpen={isGeneratingAi} />

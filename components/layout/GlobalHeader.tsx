@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/db/supabase.server";
 import { UserMenu } from "./UserMenu";
 import { Button } from "@/components/ui/button";
+import { FeatureFlag } from "@/lib/features";
 
 /**
  * Global header component (Server Component)
@@ -44,12 +45,16 @@ export async function GlobalHeader() {
           ) : (
             // Unauthenticated state
             <>
-              <Button variant="ghost" asChild>
-                <Link href="/login">Zaloguj się</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/register">Zarejestruj się</Link>
-              </Button>
+              <FeatureFlag name="auth.login">
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Zaloguj się</Link>
+                </Button>
+              </FeatureFlag>
+              <FeatureFlag name="auth.register">
+                <Button asChild>
+                  <Link href="/register">Zarejestruj się</Link>
+                </Button>
+              </FeatureFlag>
             </>
           )}
         </nav>

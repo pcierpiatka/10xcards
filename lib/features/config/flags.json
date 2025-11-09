@@ -1,0 +1,20 @@
+{
+  "local": {
+    "auth.login": true,
+    "auth.register": true,
+    "flashcards.create.ai": true,
+    "flashcards.list": true
+  },
+  "integration": {
+    "auth.login": true,
+    "auth.register": true,
+    "flashcards.create.ai": true,
+    "flashcards.list": true
+  },
+  "production": {
+    "auth.login": true,
+    "auth.register": false,
+    "flashcards.create.ai": true,
+    "flashcards.list": true
+  }
+}

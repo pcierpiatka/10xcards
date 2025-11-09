@@ -63,6 +63,7 @@ export const ERROR_CODES = {
   RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
   AI_GENERATION_FAILED: "AI_GENERATION_FAILED",
   INTERNAL_ERROR: "INTERNAL_ERROR",
+  FEATURE_DISABLED: "FEATURE_DISABLED",
 } as const;
 
 /**
@@ -86,6 +87,7 @@ export const ERROR_MESSAGES = {
   RATE_LIMIT_EXCEEDED: "You've exceeded the rate limit. Please try again later",
   AI_GENERATION_FAILED: "Failed to generate flashcards. Please try again later",
   INTERNAL_ERROR: "An unexpected error occurred. Please try again later",
+  FEATURE_DISABLED: "This feature is not available in the current environment",
   TEXT_TOO_SHORT: `Text must be at least ${FLASHCARD.MIN_TEXT_LENGTH} characters`,
   TEXT_TOO_LONG: `Text must be no more than ${FLASHCARD.MAX_TEXT_LENGTH} characters`,
   FRONT_TOO_LONG: `Front of flashcard must be no more than ${FLASHCARD.FRONT_MAX_LENGTH} characters`,

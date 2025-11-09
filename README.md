@@ -398,6 +398,74 @@ docker-compose up -d
 
 The project can also be deployed on DigitalOcean using Docker containers. See the GitHub Actions workflow in `.github/workflows/deploy.yml` for CI/CD setup.
 
+## Feature Flags
+
+The application uses an environment-based feature flag system for controlled feature rollouts.
+
+### Quick Start
+
+Feature flags are controlled via `ENV_NAME` environment variable:
+
+```bash
+ENV_NAME=local        # Development (all features ON)
+ENV_NAME=integration  # Staging (partial features)
+ENV_NAME=production   # Production (controlled rollout)
+```
+
+### Configuration
+
+The `ENV_NAME` variable is already set in `.env.local` for local development:
+
+```bash
+ENV_NAME=local  # All features enabled for development
+```
+
+For deployment, set `ENV_NAME` in your hosting platform:
+
+- **Vercel**: Environment Variables in project settings
+- **DigitalOcean**: App-level environment variables
+- **Docker**: Pass via `-e ENV_NAME=production` or docker-compose
+
+### Usage
+
+```typescript
+// API routes - guard pattern
+import { requireFeature } from '@/lib/features';
+
+export async function POST(request: Request) {
+  const guardError = requireFeature('auth.login');
+  if (guardError) return guardError;
+  // ... business logic
+}
+
+// React components - conditional rendering
+import { FeatureFlag } from '@/lib/features';
+
+<FeatureFlag name="flashcards.create.ai">
+  <AiGeneratorForm />
+</FeatureFlag>
+
+// React hooks - conditional logic
+import { useFeature } from '@/lib/features';
+
+const { isEnabled } = useFeature('flashcards.list');
+```
+
+### Documentation
+
+- **Quick Reference**: `lib/features/README.md`
+- **Deployment Guide**: `lib/features/DEPLOYMENT.md`
+- **Available Flags**: See `lib/features/config/flags.json`
+
+### Available Features
+
+Current flags:
+
+- `auth.login` - Login functionality
+- `auth.register` - User registration
+- `flashcards.create.ai` - AI-powered flashcard generation
+- `flashcards.list` - Flashcard listing and management
+
 ## License
 
 MIT

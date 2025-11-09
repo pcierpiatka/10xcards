@@ -15,6 +15,7 @@ import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";
 import { requireAuth } from "@/lib/api/auth-utils";
 import { ApiError } from "@/lib/api/error-responses";
+import { requireFeature } from "@/lib/features";
 
 /**
  * POST /api/ai/generations
@@ -31,13 +32,17 @@ import { ApiError } from "@/lib/api/error-responses";
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // 1. Authentication - require valid user session
+    // 1. Feature flag guard - check BEFORE any business logic
+    const guardError = requireFeature("flashcards.create.ai");
+    if (guardError) return guardError;
+
+    // 2. Authentication - require valid user session
     const user = await requireAuth();
 
-    // 2. Initialize Supabase client
+    // 3. Initialize Supabase client
     const supabase = await createClient();
 
-    // 3. Parse and validate request body
+    // 4. Parse and validate request body
     const body = await request.json();
     const validationResult = createAiGenerationSchema.safeParse(body);
 
@@ -49,20 +54,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // 4. Initialize service with dependencies
+    // 5. Initialize service with dependencies
     const openRouterClient = new OpenRouterClient();
     const aiGenerationService = new AiGenerationService(
       supabase,
       openRouterClient
     );
 
-    // 4. Execute generation
+    // 6. Execute generation
     const result = await aiGenerationService.createGeneration(
       user.id,
       validationResult.data
     );
 
-    // 5. Return 201 Created with generation result
+    // 7. Return 201 Created with generation result
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     return handleError(error);

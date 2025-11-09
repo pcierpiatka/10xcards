@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { FeatureFlag } from "@/lib/features";
 
 /**
  * Login form component
@@ -114,16 +115,18 @@ export function LoginForm() {
         >
           Zapomniałeś hasła?
         </Link>
-        <div>
-          <span className="text-muted-foreground">Nie masz konta? </span>
-          <Link
-            href="/register"
-            className="font-medium hover:underline"
-            data-testid="login-register-link"
-          >
-            Zarejestruj się
-          </Link>
-        </div>
+        <FeatureFlag name="auth.register">
+          <div>
+            <span className="text-muted-foreground">Nie masz konta? </span>
+            <Link
+              href="/register"
+              className="font-medium hover:underline"
+              data-testid="login-register-link"
+            >
+              Zarejestruj się
+            </Link>
+          </div>
+        </FeatureFlag>
       </div>
     </div>
   );

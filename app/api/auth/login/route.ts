@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/db/supabase.server";
 import { loginSchema } from "@/lib/validations/auth";
 import { errorResponse, ApiErrors, ApiError } from "@/lib/api/error-responses";
+import { requireFeature } from "@/lib/features";
 
 /**
  * POST /api/auth/login
@@ -19,6 +20,10 @@ import { errorResponse, ApiErrors, ApiError } from "@/lib/api/error-responses";
  */
 export async function POST(request: NextRequest) {
   try {
+    // 🛡️ Feature flag guard - check BEFORE any business logic
+    const guardError = requireFeature("auth.login");
+    if (guardError) return guardError;
+
     // Parse and validate request body
     const body = await request.json();
     const validation = loginSchema.safeParse(body);
