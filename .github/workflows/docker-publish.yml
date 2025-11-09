@@ -1,0 +1,88 @@
+name: Build and Publish Docker Image
+
+# Trigger: push to main or manual
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Required for GHCR push
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: Build and Push to GHCR
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Step 2: Setup Node.js (for quality gates)
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run ESLint (quality gate)
+      - name: Run ESLint
+        run: npm run lint
+
+      # Step 5: Run unit tests (quality gate)
+      - name: Run unit tests
+        run: npm run test:unit
+
+      # Step 6: TypeScript type check (quality gate)
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      # Step 7: Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 8: Extract metadata (tags, labels)
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=main-
+            type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.title=10xCards
+            org.opencontainers.image.description=AI-powered flashcard generator
+            org.opencontainers.image.vendor=10xDevs
+
+      # Step 9: Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+
+      # Step 10: Summary
+      - name: Deployment summary
+        run: |
+          echo "🚀 Docker image published successfully!"
+          echo "📦 Repository: ghcr.io/${{ github.repository }}"
+          echo "🔖 Tags: ${{ steps.meta.outputs.tags }}"
+          echo ""
+          echo "View your image at:"
+          echo "https://github.com/${{ github.repository }}/pkgs/container/10xcards"

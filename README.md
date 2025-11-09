@@ -22,14 +22,14 @@ AI-powered flashcard generator for efficient learning.
 - [Vitest](https://vitest.dev/) v2.0 - Unit & integration tests
 - [Playwright](https://playwright.dev/) v1.48 - E2E tests (cross-browser)
 - [React Testing Library](https://testing-library.com/react) v16.1 - Component tests
-- [MSW](https://mswjs.io/) v2.6 - API mocking
-- [k6](https://k6.io/) - Performance testing
+- [MSW](https://mswjs.io/) v2.6 - API mocking (available)
 
 ### DevOps
 
 - [Docker](https://www.docker.com/) - Containerization
 - [GitHub Actions](https://github.com/features/actions) - CI/CD
-- [DigitalOcean](https://www.digitalocean.com/) - Hosting
+- [Vercel](https://vercel.com/) - Production hosting (primary)
+- [DigitalOcean](https://www.digitalocean.com/) - Alternative hosting (Docker-based)
 
 ## Prerequisites
 
@@ -153,7 +153,7 @@ The project uses a comprehensive testing strategy with multiple test types:
 - **Vitest** - Unit and integration tests (fast, TypeScript-native)
 - **Playwright** - End-to-end tests (cross-browser support)
 - **React Testing Library** - Component tests
-- **MSW** (Mock Service Worker) - API mocking (planned)
+- **MSW** (Mock Service Worker) - API mocking (available)
 
 ### Running Tests
 
@@ -282,7 +282,7 @@ The `local-dev-scripts/` directory contains bash scripts for common development 
 │   ├── dto/              # Data Transfer Objects (API contracts)
 │   ├── integrations/     # External API integrations (OpenRouter)
 │   ├── types/            # Application domain types
-│   └── validations/      # Zod validation schemas
+│   └── validation/       # Zod validation schemas
 ├── local-dev-scripts/    # Development helper scripts
 │   ├── create-supabase-db-structure.sh  # Initialize database
 │   ├── disable-rls.sh    # Disable Row Level Security for testing
@@ -355,7 +355,26 @@ psql postgresql://postgres:your-super-secret-and-long-postgres-password@localhos
 
 ## Deployment
 
-### Docker
+### Vercel (Recommended for Production)
+
+The project is configured for deployment on Vercel with automated CI/CD:
+
+**Manual deployment** via GitHub Actions:
+
+1. Go to Actions → "Deploy to Production (Vercel)"
+2. Select branch (`release` or `main`)
+3. Click "Run workflow"
+
+The workflow includes quality gates:
+
+- ESLint linting
+- Unit tests (142 tests)
+- Production build verification
+- Automatic versioning with git tags
+
+See `.github/workflows/deploy-vercel-production.yml` for full configuration.
+
+### Docker (Local or Self-Hosted)
 
 Build the Docker image:
 
@@ -375,9 +394,9 @@ docker run -p 3000:3000 --env-file .env 10xcards:latest
 docker-compose up -d
 ```
 
-### DigitalOcean
+### DigitalOcean (Alternative)
 
-The project is configured for deployment on DigitalOcean using Docker containers. See the GitHub Actions workflow in `.github/workflows/` for CI/CD setup.
+The project can also be deployed on DigitalOcean using Docker containers. See the GitHub Actions workflow in `.github/workflows/deploy.yml` for CI/CD setup.
 
 ## License
 
