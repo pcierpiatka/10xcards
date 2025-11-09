@@ -1,9 +1,7 @@
 name: Build and Publish Docker Image
 
-# Trigger: push to main or manual
+# Trigger: manual only
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # Required for GHCR push
