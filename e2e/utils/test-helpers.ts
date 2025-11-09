@@ -74,3 +74,15 @@ export async function createTestUser(page: Page) {
 
   return { email: testEmail, password: testPassword };
 }
+
+/**
+ * Login user via login form
+ * @param page - Playwright page object
+ * @param email - User email
+ * @param password - User password
+ */
+export async function login(page: Page, email: string, password: string) {
+  await page.goto("/login");
+  await fillLoginForm(page, email, password);
+  await page.getByTestId("login-submit").click();
+}

@@ -10,6 +10,8 @@ interface FlashcardListProps {
   onLoadMore: () => void;
   onUpdate: (id: FlashcardId, data: UpdateFlashcardCommand) => void;
   onDelete: (id: FlashcardId) => void;
+  onOptimisticDelete: (id: FlashcardId) => void;
+  onDeleteError: (id: FlashcardId, error: unknown) => void;
 }
 
 /**
@@ -23,6 +25,8 @@ export function FlashcardList({
   onLoadMore,
   onUpdate,
   onDelete,
+  onOptimisticDelete,
+  onDeleteError,
 }: FlashcardListProps) {
   return (
     <div className="space-y-6">
@@ -34,6 +38,8 @@ export function FlashcardList({
             flashcard={flashcard}
             onUpdate={onUpdate}
             onDelete={onDelete}
+            onOptimisticDelete={onOptimisticDelete}
+            onDeleteError={onDeleteError}
           />
         ))}
       </div>

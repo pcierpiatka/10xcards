@@ -33,6 +33,10 @@ export function useDashboardManager() {
   const [viewState, setViewState] = useState<ViewState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [formResetKey, setFormResetKey] = useState(0); // For resetting AI form
+  // Optimistic delete backup - stores flashcards that were deleted but might need rollback
+  const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<
+    Map<FlashcardId, FlashcardViewModel>
+  >(new Map());
 
   // Load initial flashcards on mount
   useEffect(() => {
@@ -147,9 +151,63 @@ export function useDashboardManager() {
     // TODO: Implement in step 11
   };
 
+  /**
+   * Optimistic delete - remove flashcard from UI immediately
+   * Called from FlashcardItem before API call
+   */
+  const handleOptimisticDelete = (id: FlashcardId) => {
+    const flashcard = flashcards.find((f) => f.id === id);
+    if (flashcard) {
+      // Store flashcard for potential rollback
+      setOptimisticallyDeleted((prev) => new Map(prev).set(id, flashcard));
+      // Remove from UI
+      setFlashcards((prev) => prev.filter((f) => f.id !== id));
+    }
+  };
+
+  /**
+   * Rollback optimistic delete - restore flashcard on error
+   * Called from FlashcardItem if API call fails
+   */
+  const handleDeleteError = (id: FlashcardId) => {
+    const backup = optimisticallyDeleted.get(id);
+    if (backup) {
+      // Restore flashcard to list (at the beginning for visibility)
+      setFlashcards((prev) => [backup, ...prev]);
+      // Remove from backup
+      setOptimisticallyDeleted((prev) => {
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  /**
+   * Delete flashcard - cleanup after successful deletion
+   * Called from FlashcardItem after API success
+   */
   const deleteFlashcard = async (id: FlashcardId) => {
-    console.log("deleteFlashcard called with:", id);
-    // TODO: Implement in step 12
+    // Cleanup backup after successful deletion
+    setOptimisticallyDeleted((prev) => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
+
+    // Update pagination count (optimistic)
+    if (pagination) {
+      setPagination({
+        ...pagination,
+        total_items: Math.max(0, pagination.total_items - 1),
+        total_pages: Math.max(
+          1,
+          Math.ceil(
+            Math.max(0, pagination.total_items - 1) / pagination.page_size
+          )
+        ),
+      });
+    }
   };
 
   const loadMoreFlashcards = async () => {
@@ -205,5 +263,8 @@ export function useDashboardManager() {
     updateFlashcard,
     deleteFlashcard,
     loadMoreFlashcards,
+    // Optimistic delete helpers
+    handleOptimisticDelete,
+    handleDeleteError,
   };
 }

@@ -1,6 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DeleteFlashcardButton } from "./DeleteFlashcardButton";
+import { DeleteFlashcardModal } from "./DeleteFlashcardModal";
+import {
+  deleteFlashcard,
+  ApiError,
+} from "@/lib/services/flashcard-service.client";
+import { toast } from "sonner";
 import type { FlashcardViewModel } from "@/lib/types/viewModels";
 import type { FlashcardId, UpdateFlashcardCommand } from "@/lib/dto/types";
 
@@ -8,13 +18,22 @@ interface FlashcardItemProps {
   flashcard: FlashcardViewModel;
   onUpdate?: (id: FlashcardId, data: UpdateFlashcardCommand) => void;
   onDelete?: (id: FlashcardId) => void;
+  onOptimisticDelete?: (id: FlashcardId) => void;
+  onDeleteError?: (id: FlashcardId, error: unknown) => void;
 }
 
 /**
  * FlashcardItem - Single flashcard card in list
- * Read-only for now (edit/delete will be added in step 11-12)
+ * Supports delete with optimistic UI and confirmation modal
  */
-export function FlashcardItem({ flashcard }: FlashcardItemProps) {
+export function FlashcardItem({
+  flashcard,
+  onDelete,
+  onOptimisticDelete,
+  onDeleteError,
+}: FlashcardItemProps) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   // Format created_at for display
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -45,8 +64,57 @@ export function FlashcardItem({ flashcard }: FlashcardItemProps) {
 
   const badge = getSourceTypeBadge(flashcard.source_type);
 
+  // Handler for opening delete modal
+  const handleDeleteClick = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handler for confirming deletion (with optimistic UI)
+  const handleDeleteConfirm = async (flashcardId: FlashcardId) => {
+    setIsDeleting(true);
+
+    // Optimistic delete - remove from UI immediately
+    onOptimisticDelete?.(flashcardId);
+
+    try {
+      // Call API
+      await deleteFlashcard(flashcardId);
+
+      // Success - call onDelete callback
+      onDelete?.(flashcardId);
+      toast.success("Fiszka została usunięta");
+    } catch (error) {
+      // Error - rollback optimistic delete
+      onDeleteError?.(flashcardId, error);
+
+      // Show error message based on error type
+      if (error instanceof ApiError) {
+        switch (error.status) {
+          case 404:
+            toast.error("Fiszka nie istnieje lub została już usunięta");
+            break;
+          case 401:
+            toast.error("Sesja wygasła. Zaloguj się ponownie");
+            break;
+          default:
+            toast.error("Nie udało się usunąć fiszki. Spróbuj ponownie");
+        }
+      } else {
+        toast.error("Wystąpił nieoczekiwany błąd");
+      }
+
+      console.error("[FlashcardItem] Delete failed", {
+        flashcardId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
+  };
+
   return (
-    <Card>
+    <Card data-testid="flashcard-item">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
           <Badge variant={badge.variant}>{badge.label}</Badge>
@@ -59,10 +127,12 @@ export function FlashcardItem({ flashcard }: FlashcardItemProps) {
           <Button variant="ghost" size="sm" disabled>
             ✏️
           </Button>
-          {/* TODO: Step 12 - Enable delete */}
-          <Button variant="ghost" size="sm" disabled>
-            🗑️
-          </Button>
+          {/* Delete button with modal confirmation */}
+          <DeleteFlashcardButton
+            flashcardId={flashcard.id}
+            onDeleteClick={handleDeleteClick}
+            disabled={isDeleting}
+          />
         </div>
       </CardHeader>
       <CardContent>
@@ -79,6 +149,15 @@ export function FlashcardItem({ flashcard }: FlashcardItemProps) {
           </div>
         </div>
       </CardContent>
+
+      {/* Delete confirmation modal */}
+      <DeleteFlashcardModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        flashcardId={flashcard.id}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+      />
     </Card>
   );
 }
