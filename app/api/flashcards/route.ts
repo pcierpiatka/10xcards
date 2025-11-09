@@ -9,7 +9,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/db/supabase.server";
 import { FlashcardService } from "@/lib/services/flashcard-service.server";
-import { flashcardListQuerySchema } from "@/lib/validation/flashcard-validation";
+import {
+  flashcardListQuerySchema,
+  bulkDeleteFlashcardsSchema,
+} from "@/lib/validation/flashcard-validation";
 import { AppError, ValidationError } from "@/lib/errors/index";
 import type { ErrorResponseDto } from "@/lib/dto/types";
 import { requireAuth } from "@/lib/api/auth-utils";
@@ -71,6 +74,55 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // 7. Return 200 OK with flashcard list
     return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+/**
+ * DELETE /api/flashcards
+ *
+ * Request:
+ * - Body: { ids: string[] } (array of flashcard UUIDs)
+ * - Headers: Authorization: Bearer <Supabase JWT>
+ *
+ * Response:
+ * - 204: No Content (success)
+ * - 400: Validation error (invalid UUID format, empty array)
+ * - 401: Authentication error
+ * - 404: None of the flashcards exist or belong to user
+ * - 500: Server error
+ *
+ * Note: Uses bulk delete operation for efficiency (single query)
+ */
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  try {
+    // 1. Authentication - require valid user session
+    const user = await requireAuth();
+
+    // 2. Initialize Supabase client
+    const supabase = await createClient();
+
+    // 3. Parse and validate request body
+    const body = await request.json();
+    const validationResult = bulkDeleteFlashcardsSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0];
+      throw new ValidationError(firstError.message, {
+        field: firstError.path.join("."),
+        errors: validationResult.error.issues,
+      });
+    }
+
+    // 4. Initialize service with dependencies
+    const flashcardService = new FlashcardService(supabase);
+
+    // 5. Execute bulk delete
+    await flashcardService.bulkDelete(validationResult.data.ids, user.id);
+
+    // 6. Return 204 No Content (success, no response body)
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     return handleError(error);
   }

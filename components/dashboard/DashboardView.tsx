@@ -28,6 +28,8 @@ export function DashboardView() {
     updateFlashcard,
     deleteFlashcard,
     loadMoreFlashcards,
+    handleOptimisticDelete,
+    handleDeleteError,
   } = useDashboardManager();
 
   const isInitialLoading =
@@ -109,6 +111,8 @@ export function DashboardView() {
             onLoadMore={loadMoreFlashcards}
             onUpdate={updateFlashcard}
             onDelete={deleteFlashcard}
+            onOptimisticDelete={handleOptimisticDelete}
+            onDeleteError={handleDeleteError}
           />
         ) : (
           <EmptyState />

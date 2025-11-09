@@ -44,3 +44,31 @@ export const flashcardListQuerySchema = z.object({
       return parsed;
     }),
 });
+
+/**
+ * Schema for DELETE /api/flashcards/{flashcard_id} path parameter
+ *
+ * Validates flashcard_id from URL path
+ * Requirements:
+ * - Must be a valid UUID format
+ *
+ * Note: Uses .uuid() for strict UUID validation
+ */
+export const deleteFlashcardParamsSchema = z.object({
+  flashcard_id: z.string().uuid("ID fiszki musi być w formacie UUID"),
+});
+
+/**
+ * Schema for DELETE /api/flashcards request body (bulk delete)
+ *
+ * Validates BulkDeleteFlashcardsCommand DTO
+ * Requirements:
+ * - ids: non-empty array of valid UUIDs
+ *
+ * Note: .min(1) prevents empty array submissions
+ */
+export const bulkDeleteFlashcardsSchema = z.object({
+  ids: z
+    .array(z.string().uuid("Każde ID musi być w formacie UUID"))
+    .min(1, "Tablica 'ids' nie może być pusta"),
+});
