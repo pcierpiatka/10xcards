@@ -574,6 +574,7 @@ CREATE INDEX idx_flashcards_flashcard_id_user_id ON flashcards (flashcard_id, us
    - Mniejszy overhead (SDK nie parsuje array)
 
 2. **Select tylko potrzebne kolumny**
+
    ```typescript
    .select('flashcard_id, front, back, source_type') // Bez created_at w UPDATE
    ```
