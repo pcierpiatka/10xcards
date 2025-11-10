@@ -172,20 +172,26 @@
 
 - **Errors:** `404`, `401`.
 
-### 2.6 `PATCH /api/flashcards/{flashcard_id}`
+### 2.6 `PUT /api/flashcards/{flashcard_id}`
 
-- **Description:** Update one or both sides of a flashcard; flips `source_type` to `ai-edited` if editing an AI card.
+- **Description:** Update flashcard content (full update - both front and back required); automatically flips `source_type` to `ai-edited` if editing an AI card.
 - **Headers:** `Authorization: Bearer <Supabase JWT>`
 - **Request JSON:**
 
 ```json
 {
-  "front": "optional string <=300",
-  "back": "optional string <=600"
+  "front": "string <=300 (required)",
+  "back": "string <=600 (required)"
 }
 ```
 
-- **Processing Notes:** Validate lengths; update `updated_at`; if original `source_type='ai'` and changes were made, update source record to `ai-edited`.
+- **Processing Notes:**
+  - Validate lengths (front: 1-300, back: 1-600 chars).
+  - Execute SELECT to get current `source_type` (for ownership check and source_type logic).
+  - If original `source_type='ai'` → change to `'ai-edited'`.
+  - If `source_type='manual'` or `'ai-edited'` → keep unchanged.
+  - Execute UPDATE with new front/back and determined source_type.
+  - Return 200 (not 204) because server mutates `source_type`.
 - **Response 200 JSON:**
 
 ```json
@@ -194,16 +200,16 @@
     "id": "uuid",
     "front": "updated",
     "back": "updated",
-    "flashcard_source": {
-      "id": "string",
-      "source_type": "ai-edited"
-    },
-    "updated_at": "ISO-8601 timestamp"
+    "source_type": "ai-edited"
   }
 }
 ```
 
-- **Errors:** `400`, `404`, `401`.
+- **Errors:**
+  - `400` — invalid UUID format, missing fields, empty strings, length violations.
+  - `401` — unauthorized (missing or invalid JWT).
+  - `404` — flashcard not found or doesn't belong to user.
+  - `500` — database error or unexpected failure.
 
 ### 2.7 `DELETE /api/flashcards/{flashcard_id}`
 

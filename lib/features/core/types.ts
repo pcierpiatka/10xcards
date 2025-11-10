@@ -22,7 +22,9 @@ export type FeatureName =
   | "auth.login"
   | "auth.register"
   | "flashcards.create.ai"
-  | "flashcards.list";
+  | "flashcards.list"
+  | "flashcards.edit"
+  | "flashcards.delete";
 
 /**
  * Valid environment values for validation

@@ -72,3 +72,36 @@ export const bulkDeleteFlashcardsSchema = z.object({
     .array(z.string().uuid("Każde ID musi być w formacie UUID"))
     .min(1, "Tablica 'ids' nie może być pusta"),
 });
+
+/**
+ * Schema for PUT /api/flashcards/{flashcard_id} path parameter
+ *
+ * Validates flashcard_id from URL path
+ * Requirements:
+ * - Must be a valid UUID format
+ */
+export const updateFlashcardParamsSchema = z.object({
+  flashcard_id: z.string().uuid("ID fiszki musi być w formacie UUID"),
+});
+
+/**
+ * Schema for PUT /api/flashcards/{flashcard_id} request body
+ *
+ * Validates UpdateFlashcardCommand DTO
+ * Requirements:
+ * - front: 1-300 chars (required)
+ * - back: 1-600 chars (required)
+ * - Both fields must be present
+ *
+ * Note: Unlike PATCH, PUT requires both fields (full update)
+ */
+export const updateFlashcardBodySchema = z.object({
+  front: z
+    .string()
+    .min(1, "Przód fiszki nie może być pusty")
+    .max(300, "Przód fiszki może mieć maksymalnie 300 znaków"),
+  back: z
+    .string()
+    .min(1, "Tył fiszki nie może być pusty")
+    .max(600, "Tył fiszki może mieć maksymalnie 600 znaków"),
+});

@@ -1,22 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DeleteFlashcardButton } from "./DeleteFlashcardButton";
 import { DeleteFlashcardModal } from "./DeleteFlashcardModal";
+import { FlashcardReadView } from "./FlashcardReadView";
+import { FlashcardEditView } from "./FlashcardEditView";
 import {
   deleteFlashcard,
+  updateFlashcard,
   ApiError,
 } from "@/lib/services/flashcard-service.client";
 import { toast } from "sonner";
 import type { FlashcardViewModel } from "@/lib/types/viewModels";
 import type { FlashcardId, UpdateFlashcardCommand } from "@/lib/dto/types";
+import { FeatureFlag } from "@/lib/features";
 
 interface FlashcardItemProps {
   flashcard: FlashcardViewModel;
-  onUpdate?: (id: FlashcardId, data: UpdateFlashcardCommand) => void;
+  onUpdate?: (
+    id: FlashcardId,
+    data: Partial<Pick<FlashcardViewModel, "front" | "back" | "source_type">>
+  ) => void;
   onDelete?: (id: FlashcardId) => void;
   onOptimisticDelete?: (id: FlashcardId) => void;
   onDeleteError?: (id: FlashcardId, error: unknown) => void;
@@ -24,16 +31,37 @@ interface FlashcardItemProps {
 
 /**
  * FlashcardItem - Single flashcard card in list
- * Supports delete with optimistic UI and confirmation modal
+ * Supports inline editing and delete with optimistic UI
+ * - Edit: Click edit button → inline form → save/cancel
+ * - Delete: Click delete button → confirmation modal → delete
  */
 export function FlashcardItem({
   flashcard,
+  onUpdate,
   onDelete,
   onOptimisticDelete,
   onDeleteError,
 }: FlashcardItemProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Local state for display - prevents showing empty card during React state update
+  const [displayData, setDisplayData] = useState({
+    front: flashcard.front,
+    back: flashcard.back,
+    source_type: flashcard.source_type,
+  });
+
+  // Sync local display state with props
+  useEffect(() => {
+    setDisplayData({
+      front: flashcard.front,
+      back: flashcard.back,
+      source_type: flashcard.source_type,
+    });
+  }, [flashcard.front, flashcard.back, flashcard.source_type]);
   // Format created_at for display
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -56,13 +84,13 @@ export function FlashcardItem({
       case "ai":
         return { label: "AI", variant: "default" as const };
       case "ai-edited":
-        return { label: "AI (edytowana)", variant: "outline" as const };
+        return { label: "AI (edytowana)", variant: "default" as const };
       default:
         return { label: sourceType, variant: "outline" as const };
     }
   };
 
-  const badge = getSourceTypeBadge(flashcard.source_type);
+  const badge = getSourceTypeBadge(displayData.source_type);
 
   // Handler for opening delete modal
   const handleDeleteClick = () => {
@@ -113,6 +141,73 @@ export function FlashcardItem({
     }
   };
 
+  // Handler for opening edit mode
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  // Handler for canceling edit
+  const handleEditCancel = () => {
+    setIsEditing(false);
+  };
+
+  // Handler for saving edits
+  const handleEditSave = async (front: string, back: string) => {
+    setIsSaving(true);
+
+    // Prepare API request data
+    const updateData: UpdateFlashcardCommand = { front, back };
+
+    try {
+      // Call API
+      const result = await updateFlashcard(flashcard.id, updateData);
+
+      // Update local display state IMMEDIATELY (before parent state update)
+      setDisplayData({
+        front: result.front,
+        back: result.back,
+        source_type: result.source_type,
+      });
+
+      // Update parent state (may be batched by React)
+      onUpdate?.(flashcard.id, {
+        front: result.front,
+        back: result.back,
+        source_type: result.source_type, // Important: update source_type from server (ai → ai-edited)
+      });
+
+      // Exit edit mode - now safe because displayData has new values
+      setIsEditing(false);
+      toast.success("Fiszka została zaktualizowana");
+    } catch (error) {
+      // Show error message based on error type
+      if (error instanceof ApiError) {
+        switch (error.status) {
+          case 404:
+            toast.error("Fiszka nie istnieje lub została już usunięta");
+            break;
+          case 401:
+            toast.error("Sesja wygasła. Zaloguj się ponownie");
+            break;
+          case 400:
+            toast.error("Nieprawidłowe dane. Sprawdź długość pól");
+            break;
+          default:
+            toast.error("Nie udało się zaktualizować fiszki. Spróbuj ponownie");
+        }
+      } else {
+        toast.error("Wystąpił nieoczekiwany błąd");
+      }
+
+      console.error("[FlashcardItem] Update failed", {
+        flashcardId: flashcard.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Card data-testid="flashcard-item">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -123,31 +218,43 @@ export function FlashcardItem({
           </span>
         </div>
         <div className="flex gap-2">
-          {/* TODO: Step 11 - Enable edit */}
-          <Button variant="ghost" size="sm" disabled>
-            ✏️
-          </Button>
-          {/* Delete button with modal confirmation */}
-          <DeleteFlashcardButton
-            flashcardId={flashcard.id}
-            onDeleteClick={handleDeleteClick}
-            disabled={isDeleting}
-          />
+          {/* Edit button - protected by flashcards.edit feature flag */}
+          <FeatureFlag name="flashcards.edit">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEditClick}
+              disabled={isEditing || isDeleting}
+              aria-label="Edytuj fiszkę"
+            >
+              ✏️
+            </Button>
+          </FeatureFlag>
+          {/* Delete button - protected by flashcards.delete feature flag */}
+          <FeatureFlag name="flashcards.delete">
+            <DeleteFlashcardButton
+              flashcardId={flashcard.id}
+              onDeleteClick={handleDeleteClick}
+              disabled={isDeleting || isEditing}
+            />
+          </FeatureFlag>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div>
-            <div className="text-xs font-medium text-muted-foreground">
-              PRZÓD
-            </div>
-            <p className="text-sm">{flashcard.front}</p>
-          </div>
-          <div className="border-t pt-2">
-            <div className="text-xs font-medium text-muted-foreground">TYŁ</div>
-            <p className="text-sm">{flashcard.back}</p>
-          </div>
-        </div>
+        {isEditing ? (
+          <FlashcardEditView
+            initialFront={displayData.front}
+            initialBack={displayData.back}
+            onSave={handleEditSave}
+            onCancel={handleEditCancel}
+            isSaving={isSaving}
+          />
+        ) : (
+          <FlashcardReadView
+            front={displayData.front}
+            back={displayData.back}
+          />
+        )}
       </CardContent>
 
       {/* Delete confirmation modal */}

@@ -5,7 +5,6 @@ import type {
   CreateManualFlashcardCommand,
   FlashcardId,
   PaginationDto,
-  UpdateFlashcardCommand,
 } from "@/lib/dto/types";
 import type { FlashcardViewModel } from "@/lib/types/viewModels";
 import * as flashcardService from "@/lib/services/flashcard-service.client";
@@ -143,12 +142,27 @@ export function useDashboardManager() {
     // TODO: Implement in step 9
   };
 
-  const updateFlashcard = async (
+  /**
+   * Update flashcard in local state
+   * Called from FlashcardItem for optimistic updates
+   * FlashcardItem handles API call and rollback on error
+   *
+   * Accepts partial updates - can update front, back, source_type, or any combination
+   */
+  const updateFlashcard = (
     id: FlashcardId,
-    data: UpdateFlashcardCommand
+    data: Partial<Pick<FlashcardViewModel, "front" | "back" | "source_type">>
   ) => {
-    console.log("updateFlashcard called with:", id, data);
-    // TODO: Implement in step 11
+    setFlashcards((prev) =>
+      prev.map((flashcard) =>
+        flashcard.id === id
+          ? {
+              ...flashcard,
+              ...data, // Spread all provided fields (front, back, source_type, etc.)
+            }
+          : flashcard
+      )
+    );
   };
 
   /**
