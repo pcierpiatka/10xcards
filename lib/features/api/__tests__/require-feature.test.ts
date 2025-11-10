@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextResponse } from "next/server";
 import { requireFeature } from "../require-feature";
 import { ERROR_CODES, ERROR_MESSAGES } from "@/lib/constants";
+import testFlags from "../../__tests__/__fixtures__/test-flags.json";
 
 describe("requireFeature", () => {
   const originalEnv = process.env.ENV_NAME;
@@ -33,15 +34,15 @@ describe("requireFeature", () => {
     });
 
     it("returns null for enabled flag", () => {
-      const result = requireFeature("auth.login");
+      const result = requireFeature("auth.login", testFlags);
       expect(result).toBeNull();
     });
 
     it("returns null for all enabled flags", () => {
-      expect(requireFeature("auth.login")).toBeNull();
-      expect(requireFeature("auth.register")).toBeNull();
-      expect(requireFeature("flashcards.create.ai")).toBeNull();
-      expect(requireFeature("flashcards.list")).toBeNull();
+      expect(requireFeature("auth.login", testFlags)).toBeNull();
+      expect(requireFeature("auth.register", testFlags)).toBeNull();
+      expect(requireFeature("flashcards.create.ai", testFlags)).toBeNull();
+      expect(requireFeature("flashcards.list", testFlags)).toBeNull();
     });
   });
 
@@ -52,14 +53,14 @@ describe("requireFeature", () => {
     });
 
     it("returns NextResponse with 403 status", () => {
-      const result = requireFeature("auth.register");
+      const result = requireFeature("auth.register", testFlags);
 
       expect(result).not.toBeNull();
       expect(result?.status).toBe(403);
     });
 
     it("returns response with FEATURE_DISABLED error code", async () => {
-      const result = requireFeature("auth.register");
+      const result = requireFeature("auth.register", testFlags);
       const json = await result?.json();
 
       expect(json).toEqual({
@@ -70,7 +71,7 @@ describe("requireFeature", () => {
     });
 
     it("includes feature name in response", async () => {
-      const result = requireFeature("auth.register");
+      const result = requireFeature("auth.register", testFlags);
       const json = await result?.json();
 
       expect(json.feature).toBe("auth.register");
@@ -83,13 +84,13 @@ describe("requireFeature", () => {
     });
 
     it("allows auth features", () => {
-      expect(requireFeature("auth.login")).toBeNull();
-      expect(requireFeature("auth.register")).toBeNull();
+      expect(requireFeature("auth.login", testFlags)).toBeNull();
+      expect(requireFeature("auth.register", testFlags)).toBeNull();
     });
 
     it("allows flashcard features", () => {
-      expect(requireFeature("flashcards.create.ai")).toBeNull();
-      expect(requireFeature("flashcards.list")).toBeNull();
+      expect(requireFeature("flashcards.create.ai", testFlags)).toBeNull();
+      expect(requireFeature("flashcards.list", testFlags)).toBeNull();
     });
   });
 
@@ -101,7 +102,7 @@ describe("requireFeature", () => {
     it("enables early return pattern in route handlers", () => {
       // Simulate route handler logic
       const mockRouteHandler = (featureName: "auth.login") => {
-        const guardError = requireFeature(featureName);
+        const guardError = requireFeature(featureName, testFlags);
         if (guardError) return guardError;
 
         // Business logic only runs if guard returns null
@@ -118,7 +119,7 @@ describe("requireFeature", () => {
       const mockRouteHandler = (
         featureName: "auth.register"
       ): NextResponse | { success: boolean } => {
-        const guardError = requireFeature(featureName);
+        const guardError = requireFeature(featureName, testFlags);
         if (guardError) return guardError;
 
         // This code should NOT run

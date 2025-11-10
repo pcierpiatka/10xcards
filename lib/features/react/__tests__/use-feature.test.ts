@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useFeature } from "../use-feature";
+import testFlags from "../../__tests__/__fixtures__/test-flags.json";
 
 describe("useFeature", () => {
   const originalEnv = process.env.ENV_NAME;
@@ -32,18 +33,22 @@ describe("useFeature", () => {
     });
 
     it("returns object with isEnabled: true", () => {
-      const { result } = renderHook(() => useFeature("auth.login"));
+      const { result } = renderHook(() => useFeature("auth.login", testFlags));
 
       expect(result.current).toEqual({ isEnabled: true });
     });
 
     it("returns correct values for flags in local environment", () => {
-      const authLogin = renderHook(() => useFeature("auth.login"));
-      const authRegister = renderHook(() => useFeature("auth.register"));
-      const flashcardsCreate = renderHook(() =>
-        useFeature("flashcards.create.ai")
+      const authLogin = renderHook(() => useFeature("auth.login", testFlags));
+      const authRegister = renderHook(() =>
+        useFeature("auth.register", testFlags)
       );
-      const flashcardsList = renderHook(() => useFeature("flashcards.list"));
+      const flashcardsCreate = renderHook(() =>
+        useFeature("flashcards.create.ai", testFlags)
+      );
+      const flashcardsList = renderHook(() =>
+        useFeature("flashcards.list", testFlags)
+      );
 
       expect(authLogin.result.current.isEnabled).toBe(true);
       expect(authRegister.result.current.isEnabled).toBe(true);
@@ -59,13 +64,17 @@ describe("useFeature", () => {
     });
 
     it("returns object with isEnabled: false", () => {
-      const { result } = renderHook(() => useFeature("auth.register"));
+      const { result } = renderHook(() =>
+        useFeature("auth.register", testFlags)
+      );
 
       expect(result.current).toEqual({ isEnabled: false });
     });
 
     it("returns false for disabled flag in production", () => {
-      const authRegister = renderHook(() => useFeature("auth.register"));
+      const authRegister = renderHook(() =>
+        useFeature("auth.register", testFlags)
+      );
 
       expect(authRegister.result.current.isEnabled).toBe(false);
     });
@@ -77,8 +86,10 @@ describe("useFeature", () => {
     });
 
     it("returns true for auth features", () => {
-      const authLogin = renderHook(() => useFeature("auth.login"));
-      const authRegister = renderHook(() => useFeature("auth.register"));
+      const authLogin = renderHook(() => useFeature("auth.login", testFlags));
+      const authRegister = renderHook(() =>
+        useFeature("auth.register", testFlags)
+      );
 
       expect(authLogin.result.current.isEnabled).toBe(true);
       expect(authRegister.result.current.isEnabled).toBe(true);
@@ -86,9 +97,11 @@ describe("useFeature", () => {
 
     it("returns true for flashcard features", () => {
       const flashcardsCreate = renderHook(() =>
-        useFeature("flashcards.create.ai")
+        useFeature("flashcards.create.ai", testFlags)
       );
-      const flashcardsList = renderHook(() => useFeature("flashcards.list"));
+      const flashcardsList = renderHook(() =>
+        useFeature("flashcards.list", testFlags)
+      );
 
       expect(flashcardsCreate.result.current.isEnabled).toBe(true);
       expect(flashcardsList.result.current.isEnabled).toBe(true);
@@ -101,26 +114,26 @@ describe("useFeature", () => {
     });
 
     it("returns object (not boolean)", () => {
-      const { result } = renderHook(() => useFeature("auth.login"));
+      const { result } = renderHook(() => useFeature("auth.login", testFlags));
 
       expect(typeof result.current).toBe("object");
       expect(result.current).not.toBeNull();
     });
 
     it("has isEnabled property", () => {
-      const { result } = renderHook(() => useFeature("auth.login"));
+      const { result } = renderHook(() => useFeature("auth.login", testFlags));
 
       expect(result.current).toHaveProperty("isEnabled");
     });
 
     it("isEnabled is boolean", () => {
-      const { result } = renderHook(() => useFeature("auth.login"));
+      const { result } = renderHook(() => useFeature("auth.login", testFlags));
 
       expect(typeof result.current.isEnabled).toBe("boolean");
     });
 
     it("object structure is extensible (future-proof)", () => {
-      const { result } = renderHook(() => useFeature("auth.login"));
+      const { result } = renderHook(() => useFeature("auth.login", testFlags));
 
       // Current structure
       expect(result.current).toEqual({ isEnabled: true });
@@ -140,7 +153,8 @@ describe("useFeature", () => {
     it("supports destructuring with renaming", () => {
       const { result } = renderHook(() => {
         const { isEnabled: canGenerateFlashcards } = useFeature(
-          "flashcards.create.ai"
+          "flashcards.create.ai",
+          testFlags
         );
         return canGenerateFlashcards;
       });
@@ -150,8 +164,8 @@ describe("useFeature", () => {
 
     it("supports multiple flags in one component", () => {
       const { result } = renderHook(() => {
-        const auth = useFeature("auth.login");
-        const flashcards = useFeature("flashcards.create.ai");
+        const auth = useFeature("auth.login", testFlags);
+        const flashcards = useFeature("flashcards.create.ai", testFlags);
         return { auth, flashcards };
       });
 
@@ -161,7 +175,7 @@ describe("useFeature", () => {
 
     it("can be used in conditional logic", () => {
       const { result } = renderHook(() => {
-        const { isEnabled } = useFeature("auth.login");
+        const { isEnabled } = useFeature("auth.login", testFlags);
         return isEnabled ? "enabled" : "disabled";
       });
 

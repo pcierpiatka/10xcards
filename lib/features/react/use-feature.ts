@@ -6,7 +6,7 @@
  */
 
 import { isFeatureEnabled } from "../core/is-feature-enabled";
-import type { FeatureName } from "../core/types";
+import type { FeatureName, FlagsConfig } from "../core/types";
 
 /**
  * Return type for useFeature hook
@@ -30,6 +30,7 @@ export interface UseFeatureResult {
  * For conditional rendering, prefer `<FeatureFlag>` component instead.
  *
  * @param name - Feature flag name to check
+ * @param config - Optional custom config (for testing). If not provided, loads from flags.json
  * @returns Object with `isEnabled` boolean
  *
  * @example Conditional navigation links
@@ -128,8 +129,11 @@ export interface UseFeatureResult {
  *
  * @see FeatureFlag - For conditional rendering (recommended when only showing/hiding UI)
  */
-export function useFeature(name: FeatureName): UseFeatureResult {
-  const isEnabled = isFeatureEnabled(name);
+export function useFeature(
+  name: FeatureName,
+  config?: FlagsConfig
+): UseFeatureResult {
+  const isEnabled = isFeatureEnabled(name, config);
 
   return {
     isEnabled,

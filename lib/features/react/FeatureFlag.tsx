@@ -6,7 +6,7 @@
 
 import type { ReactNode } from "react";
 import { isFeatureEnabled } from "../core/is-feature-enabled";
-import type { FeatureName } from "../core/types";
+import type { FeatureName, FlagsConfig } from "../core/types";
 
 export interface FeatureFlagProps {
   /**
@@ -24,6 +24,11 @@ export interface FeatureFlagProps {
    * If not provided, renders null (nothing)
    */
   fallback?: ReactNode;
+
+  /**
+   * Optional custom config (for testing). If not provided, loads from flags.json
+   */
+  config?: FlagsConfig;
 }
 
 /**
@@ -113,8 +118,9 @@ export function FeatureFlag({
   name,
   children,
   fallback = null,
+  config,
 }: FeatureFlagProps) {
-  const isEnabled = isFeatureEnabled(name);
+  const isEnabled = isFeatureEnabled(name, config);
 
   if (!isEnabled) {
     return <>{fallback}</>;
