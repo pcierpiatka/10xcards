@@ -36,6 +36,12 @@ export const ENVIRONMENTS: readonly Environment[] = [
 ] as const;
 
 /**
+ * Feature flags configuration structure
+ * Maps environment to feature flag values
+ */
+export type FlagsConfig = Record<Environment, Record<FeatureName, boolean>>;
+
+/**
  * Error messages for feature flag system
  */
 export const ERROR_MESSAGES = {

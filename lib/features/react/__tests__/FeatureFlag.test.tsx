@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { FeatureFlag } from "../FeatureFlag";
+import testFlags from "../../__tests__/__fixtures__/test-flags.json";
 
 describe("FeatureFlag", () => {
   const originalEnv = process.env.ENV_NAME;
@@ -33,7 +34,7 @@ describe("FeatureFlag", () => {
 
     it("renders children when feature is enabled", () => {
       render(
-        <FeatureFlag name="auth.login">
+        <FeatureFlag name="auth.login" config={testFlags}>
           <div>Login Form</div>
         </FeatureFlag>
       );
@@ -43,7 +44,11 @@ describe("FeatureFlag", () => {
 
     it("does not render fallback when feature is enabled", () => {
       render(
-        <FeatureFlag name="auth.login" fallback={<div>Coming Soon</div>}>
+        <FeatureFlag
+          name="auth.login"
+          fallback={<div>Coming Soon</div>}
+          config={testFlags}
+        >
           <div>Login Form</div>
         </FeatureFlag>
       );
@@ -54,7 +59,7 @@ describe("FeatureFlag", () => {
 
     it("renders multiple children", () => {
       render(
-        <FeatureFlag name="flashcards.list">
+        <FeatureFlag name="flashcards.list" config={testFlags}>
           <div>Item 1</div>
           <div>Item 2</div>
           <div>Item 3</div>
@@ -75,7 +80,7 @@ describe("FeatureFlag", () => {
 
     it("does not render children when feature is disabled", () => {
       render(
-        <FeatureFlag name="auth.register">
+        <FeatureFlag name="auth.register" config={testFlags}>
           <div>Register Form</div>
         </FeatureFlag>
       );
@@ -85,7 +90,11 @@ describe("FeatureFlag", () => {
 
     it("renders fallback when provided and feature is disabled", () => {
       render(
-        <FeatureFlag name="auth.register" fallback={<div>Coming Soon</div>}>
+        <FeatureFlag
+          name="auth.register"
+          fallback={<div>Coming Soon</div>}
+          config={testFlags}
+        >
           <div>Register Form</div>
         </FeatureFlag>
       );
@@ -96,7 +105,7 @@ describe("FeatureFlag", () => {
 
     it("renders null when no fallback provided and feature is disabled", () => {
       const { container } = render(
-        <FeatureFlag name="auth.register">
+        <FeatureFlag name="auth.register" config={testFlags}>
           <div>Register Form</div>
         </FeatureFlag>
       );
@@ -113,7 +122,7 @@ describe("FeatureFlag", () => {
 
     it("renders auth features", () => {
       render(
-        <FeatureFlag name="auth.login">
+        <FeatureFlag name="auth.login" config={testFlags}>
           <div>Login</div>
         </FeatureFlag>
       );
@@ -123,7 +132,7 @@ describe("FeatureFlag", () => {
 
     it("renders flashcard features", () => {
       render(
-        <FeatureFlag name="flashcards.create.ai">
+        <FeatureFlag name="flashcards.create.ai" config={testFlags}>
           <div>Generate Flashcards</div>
         </FeatureFlag>
       );
@@ -136,6 +145,7 @@ describe("FeatureFlag", () => {
         <FeatureFlag
           name="auth.login"
           fallback={<div>Feature coming soon!</div>}
+          config={testFlags}
         >
           <div>Login</div>
         </FeatureFlag>
@@ -157,7 +167,7 @@ describe("FeatureFlag", () => {
       render(
         <nav>
           <a href="/dashboard">Dashboard</a>
-          <FeatureFlag name="flashcards.list">
+          <FeatureFlag name="flashcards.list" config={testFlags}>
             <a href="/flashcards">Flashcards</a>
           </FeatureFlag>
         </nav>
@@ -171,7 +181,7 @@ describe("FeatureFlag", () => {
       render(
         <div>
           <h1>Dashboard</h1>
-          <FeatureFlag name="flashcards.create.ai">
+          <FeatureFlag name="flashcards.create.ai" config={testFlags}>
             <section>
               <h2>AI Generation Section</h2>
               <button>Generate Flashcards</button>
@@ -195,7 +205,7 @@ describe("FeatureFlag", () => {
       );
 
       render(
-        <FeatureFlag name="flashcards.list">
+        <FeatureFlag name="flashcards.list" config={testFlags}>
           <FlashcardsWidget />
         </FeatureFlag>
       );

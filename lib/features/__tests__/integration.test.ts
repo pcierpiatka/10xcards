@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { isFeatureEnabled } from "../core/is-feature-enabled";
 import { requireFeature } from "../api/require-feature";
 import { ERROR_CODES, ERROR_MESSAGES } from "@/lib/constants";
+import testFlags from "./__fixtures__/test-flags.json";
 
 describe("Feature Flags Integration", () => {
   const originalEnv = process.env.ENV_NAME;
@@ -29,7 +30,7 @@ describe("Feature Flags Integration", () => {
   describe("API Route Protection", () => {
     it("allows API request when feature is enabled (local)", () => {
       process.env.ENV_NAME = "local";
-      const result = requireFeature("auth.login");
+      const result = requireFeature("auth.login", testFlags);
       expect(result).toBeNull();
     });
 
@@ -39,7 +40,7 @@ describe("Feature Flags Integration", () => {
       const mockRouteHandler = (
         featureName: "auth.register"
       ): NextResponse | { success: boolean } => {
-        const guardError = requireFeature(featureName);
+        const guardError = requireFeature(featureName, testFlags);
         if (guardError) return guardError;
         return { success: true };
       };
@@ -60,26 +61,26 @@ describe("Feature Flags Integration", () => {
   describe("Environment-based behavior", () => {
     it("local environment: all features enabled", () => {
       process.env.ENV_NAME = "local";
-      expect(isFeatureEnabled("auth.login")).toBe(true);
-      expect(isFeatureEnabled("auth.register")).toBe(true);
-      expect(isFeatureEnabled("flashcards.create.ai")).toBe(true);
-      expect(isFeatureEnabled("flashcards.list")).toBe(true);
+      expect(isFeatureEnabled("auth.login", testFlags)).toBe(true);
+      expect(isFeatureEnabled("auth.register", testFlags)).toBe(true);
+      expect(isFeatureEnabled("flashcards.create.ai", testFlags)).toBe(true);
+      expect(isFeatureEnabled("flashcards.list", testFlags)).toBe(true);
     });
 
     it("integration environment: all features enabled", () => {
       process.env.ENV_NAME = "integration";
-      expect(isFeatureEnabled("auth.login")).toBe(true);
-      expect(isFeatureEnabled("auth.register")).toBe(true);
-      expect(isFeatureEnabled("flashcards.create.ai")).toBe(true);
-      expect(isFeatureEnabled("flashcards.list")).toBe(true);
+      expect(isFeatureEnabled("auth.login", testFlags)).toBe(true);
+      expect(isFeatureEnabled("auth.register", testFlags)).toBe(true);
+      expect(isFeatureEnabled("flashcards.create.ai", testFlags)).toBe(true);
+      expect(isFeatureEnabled("flashcards.list", testFlags)).toBe(true);
     });
 
     it("production environment: register disabled", () => {
       process.env.ENV_NAME = "production";
-      expect(isFeatureEnabled("auth.login")).toBe(true);
-      expect(isFeatureEnabled("auth.register")).toBe(false);
-      expect(isFeatureEnabled("flashcards.create.ai")).toBe(true);
-      expect(isFeatureEnabled("flashcards.list")).toBe(true);
+      expect(isFeatureEnabled("auth.login", testFlags)).toBe(true);
+      expect(isFeatureEnabled("auth.register", testFlags)).toBe(false);
+      expect(isFeatureEnabled("flashcards.create.ai", testFlags)).toBe(true);
+      expect(isFeatureEnabled("flashcards.list", testFlags)).toBe(true);
     });
   });
 
@@ -88,20 +89,20 @@ describe("Feature Flags Integration", () => {
       process.env.ENV_NAME = "local";
 
       // When feature is enabled
-      expect(isFeatureEnabled("auth.login")).toBe(true);
-      expect(requireFeature("auth.login")).toBeNull();
+      expect(isFeatureEnabled("auth.login", testFlags)).toBe(true);
+      expect(requireFeature("auth.login", testFlags)).toBeNull();
 
       // When feature is disabled (in production)
       process.env.ENV_NAME = "production";
-      expect(isFeatureEnabled("auth.register")).toBe(false);
-      expect(requireFeature("auth.register")).not.toBeNull();
+      expect(isFeatureEnabled("auth.register", testFlags)).toBe(false);
+      expect(requireFeature("auth.register", testFlags)).not.toBeNull();
     });
   });
 
   describe("Error response format", () => {
     it("returns consistent error format across all blocked features", async () => {
       process.env.ENV_NAME = "production";
-      const response = requireFeature("auth.register");
+      const response = requireFeature("auth.register", testFlags);
 
       expect(response).not.toBeNull();
       if (!response) throw new Error("Expected response");
@@ -118,8 +119,8 @@ describe("Feature Flags Integration", () => {
   describe("Fail-safe behavior", () => {
     it("falls back to local when ENV_NAME not set", () => {
       delete process.env.ENV_NAME;
-      expect(isFeatureEnabled("auth.login")).toBe(true);
-      expect(isFeatureEnabled("flashcards.create.ai")).toBe(true);
+      expect(isFeatureEnabled("auth.login", testFlags)).toBe(true);
+      expect(isFeatureEnabled("flashcards.create.ai", testFlags)).toBe(true);
     });
   });
 });

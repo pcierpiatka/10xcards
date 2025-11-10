@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import { isFeatureEnabled } from "../core/is-feature-enabled";
 import { ERROR_CODES, ERROR_MESSAGES } from "@/lib/constants";
-import type { FeatureName } from "../core/types";
+import type { FeatureName, FlagsConfig } from "../core/types";
 
 /**
  * Guard function for API routes
@@ -18,6 +18,7 @@ import type { FeatureName } from "../core/types";
  * **IMPORTANT: Call this BEFORE any business logic in your route handler**
  *
  * @param featureName - Feature flag to check (e.g., 'auth.login')
+ * @param config - Optional custom config (for testing). If not provided, loads from flags.json
  * @returns NextResponse with 403 error if disabled, null if enabled
  *
  * @example Basic usage
@@ -69,8 +70,11 @@ import type { FeatureName } from "../core/types";
  * }
  * ```
  */
-export function requireFeature(featureName: FeatureName): NextResponse | null {
-  if (!isFeatureEnabled(featureName)) {
+export function requireFeature(
+  featureName: FeatureName,
+  config?: FlagsConfig
+): NextResponse | null {
+  if (!isFeatureEnabled(featureName, config)) {
     return NextResponse.json(
       {
         error: ERROR_MESSAGES.FEATURE_DISABLED,

@@ -8,9 +8,9 @@
  * - Middleware
  */
 
-import type { FeatureName } from "./types";
+import type { FeatureName, FlagsConfig } from "./types";
 import { getEnvironment } from "./get-environment";
-import flagsConfig from "../config/flags.json";
+import { loadFlagsConfig } from "./config-loader";
 
 /**
  * Check if a feature flag is enabled in current environment
@@ -19,6 +19,7 @@ import flagsConfig from "../config/flags.json";
  * Default behavior: if flag is not defined, returns false (safe default)
  *
  * @param name - Feature flag name (e.g., 'auth.login', 'collections.create')
+ * @param config - Optional custom config (for testing). If not provided, loads from flags.json
  * @returns true if feature is enabled, false otherwise
  *
  * @example API Route
@@ -70,9 +71,13 @@ import flagsConfig from "../config/flags.json";
  * }
  * ```
  */
-export function isFeatureEnabled(name: FeatureName): boolean {
+export function isFeatureEnabled(
+  name: FeatureName,
+  config?: FlagsConfig
+): boolean {
   try {
     const environment = getEnvironment();
+    const flagsConfig = config || loadFlagsConfig();
     const envConfig = flagsConfig[environment];
 
     // Default OFF: if flag not defined in config, return false
