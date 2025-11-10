@@ -264,7 +264,15 @@ The `local-dev-scripts/` directory contains bash scripts for common development 
 ```
 .
 ├── .ai/                  # Project documentation and plans (PRD, tech stack)
-├── .claude/tasks/        # Implementation task plans
+├── .claude/              # Claude Code configuration
+│   ├── agents/           # Custom agent definitions
+│   ├── commands/         # Slash command definitions
+│   ├── rules/            # Development rules and guidelines
+│   ├── tasks/            # Implementation task plans
+│   └── thinking/         # Rubber duck analysis sessions
+├── .github/              # GitHub configuration
+│   └── workflows/        # CI/CD workflows (tests, deployment)
+├── .husky/               # Git hooks configuration (pre-commit)
 ├── app/                  # Next.js App Router pages and layouts
 │   └── api/              # API routes (auth, flashcards, ai-generations)
 ├── components/           # React components
@@ -278,16 +286,23 @@ The `local-dev-scripts/` directory contains bash scripts for common development 
 │   └── utils/            # Test helpers and utilities
 ├── hooks/                # React custom hooks (useAuth, useDashboardManager)
 ├── lib/                  # Utilities and shared code
+│   ├── api/              # API utilities and helpers
 │   ├── db/               # Supabase clients and database schema types
 │   ├── dto/              # Data Transfer Objects (API contracts)
+│   ├── errors/           # Error handling utilities
+│   ├── features/         # Feature flags system
 │   ├── integrations/     # External API integrations (OpenRouter)
+│   ├── services/         # Service layer (business logic)
+│   ├── test-utils/       # Testing utilities and helpers
 │   ├── types/            # Application domain types
-│   └── validation/       # Zod validation schemas
+│   ├── validation/       # Zod validation schemas
+│   └── validations/      # Additional validation schemas
 ├── local-dev-scripts/    # Development helper scripts
 │   ├── create-supabase-db-structure.sh  # Initialize database
 │   ├── disable-rls.sh    # Disable Row Level Security for testing
 │   └── enable-rls.sh     # Re-enable Row Level Security
 ├── public/               # Static assets (favicon, robots.txt)
+├── supabase/             # Supabase configuration
 ├── playwright.config.ts  # Playwright E2E test configuration
 └── vitest.config.ts      # Vitest unit test configuration
 ```
@@ -368,7 +383,7 @@ The project is configured for deployment on Vercel with automated CI/CD:
 The workflow includes quality gates:
 
 - ESLint linting
-- Unit tests (142 tests)
+- Unit tests (227 tests)
 - Production build verification
 - Automatic versioning with git tags
 
