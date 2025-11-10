@@ -4,7 +4,7 @@
     "auth.register": true,
     "flashcards.create.ai": true,
     "flashcards.list": true,
-    "flashcards.edit": false,
+    "flashcards.edit": true,
     "flashcards.delete": true
   },
   "integration": {
