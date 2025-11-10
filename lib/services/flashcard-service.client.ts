@@ -119,16 +119,21 @@ export async function createManualFlashcard(
 
 /**
  * Update existing flashcard
- * PATCH /api/flashcards/{id}
+ * PUT /api/flashcards/{id}
+ * Returns: { flashcard: UpdateFlashcardResponseDto }
  */
 export async function updateFlashcard(
   id: FlashcardId,
   command: UpdateFlashcardCommand
 ): Promise<UpdateFlashcardResponseDto> {
-  return apiFetch<UpdateFlashcardResponseDto>(`${API_BASE}/flashcards/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(command),
-  });
+  const response = await apiFetch<{ flashcard: UpdateFlashcardResponseDto }>(
+    `${API_BASE}/flashcards/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(command),
+    }
+  );
+  return response.flashcard; // Unpack nested response
 }
 
 /**

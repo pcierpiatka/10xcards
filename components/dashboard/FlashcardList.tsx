@@ -1,14 +1,17 @@
 import { FlashcardItem } from "./FlashcardItem";
 import { Button } from "@/components/ui/button";
 import type { FlashcardViewModel } from "@/lib/types/viewModels";
-import type { FlashcardId, UpdateFlashcardCommand } from "@/lib/dto/types";
+import type { FlashcardId } from "@/lib/dto/types";
 
 interface FlashcardListProps {
   flashcards: FlashcardViewModel[];
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
-  onUpdate: (id: FlashcardId, data: UpdateFlashcardCommand) => void;
+  onUpdate: (
+    id: FlashcardId,
+    data: Partial<Pick<FlashcardViewModel, "front" | "back" | "source_type">>
+  ) => void;
   onDelete: (id: FlashcardId) => void;
   onOptimisticDelete: (id: FlashcardId) => void;
   onDeleteError: (id: FlashcardId, error: unknown) => void;

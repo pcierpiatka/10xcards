@@ -161,14 +161,14 @@ export interface FlashcardDetailResponseDto {
 }
 
 /**
- * Command: PATCH /api/flashcards/{id}
- * UI: Edit flashcard modal/form
- * Derived from: Flashcard (front, back optional for partial update)
+ * Command: PUT /api/flashcards/{id}
+ * UI: Edit flashcard inline/form
+ * Derived from: Flashcard (front, back both required for full update)
  */
-export type UpdateFlashcardCommand = Partial<Pick<Flashcard, "front" | "back">>;
+export type UpdateFlashcardCommand = Pick<Flashcard, "front" | "back">;
 
 /**
- * Response: PATCH /api/flashcards/{id} (200)
+ * Response: PUT /api/flashcards/{id} (200)
  * UI: Update local state with new values
  *
  * Returns 200 (not 204) because server may mutate source_type:

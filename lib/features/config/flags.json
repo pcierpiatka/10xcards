@@ -3,18 +3,24 @@
     "auth.login": true,
     "auth.register": true,
     "flashcards.create.ai": true,
-    "flashcards.list": true
+    "flashcards.list": true,
+    "flashcards.edit": false,
+    "flashcards.delete": true
   },
   "integration": {
     "auth.login": true,
     "auth.register": true,
     "flashcards.create.ai": true,
-    "flashcards.list": true
+    "flashcards.list": true,
+    "flashcards.edit": true,
+    "flashcards.delete": true
   },
   "production": {
     "auth.login": true,
-    "auth.register": false,
+    "auth.register": true,
     "flashcards.create.ai": true,
-    "flashcards.list": true
+    "flashcards.list": true,
+    "flashcards.edit": true,
+    "flashcards.delete": true
   }
 }

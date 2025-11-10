@@ -11,6 +11,8 @@ import type {
   FlashcardListResponseDto,
   FlashcardListItemDto,
   FlashcardId,
+  UpdateFlashcardCommand,
+  UpdateFlashcardResponseDto,
 } from "@/lib/dto/types";
 import type { ServerSupabaseClient } from "@/lib/db/supabase.server";
 import { NotFoundError } from "@/lib/errors";
@@ -195,5 +197,98 @@ export class FlashcardService {
     if (count === 0) {
       throw new NotFoundError("Nie znaleziono żadnej z wybranych fiszek");
     }
+  }
+
+  /**
+   * Updates a flashcard (front and back)
+   *
+   * Flow:
+   * 1. Fetch existing flashcard to get current source_type
+   * 2. Check if flashcard exists and belongs to user
+   * 3. Determine new source_type:
+   *    - If current is 'ai' → change to 'ai-edited'
+   *    - Otherwise keep unchanged
+   * 4. Execute UPDATE with new data
+   * 5. Return updated flashcard
+   *
+   * Security:
+   * - RLS policies enforce user_id isolation
+   * - Explicit .eq('user_id', userId) prevents IDOR attacks
+   * - Returns 404 (not 403) to avoid leaking resource existence
+   *
+   * @param id - Flashcard ID to update
+   * @param userId - Authenticated user ID
+   * @param data - Update command (front and back)
+   * @returns Updated flashcard with possibly changed source_type
+   * @throws NotFoundError if flashcard doesn't exist or doesn't belong to user
+   * @throws Error if database operation fails
+   */
+  async update(
+    id: FlashcardId,
+    userId: string,
+    data: UpdateFlashcardCommand
+  ): Promise<UpdateFlashcardResponseDto> {
+    // 1. Fetch existing flashcard to get current source_type
+    const { data: existing, error: fetchError } = await this.supabase
+      .from("flashcards")
+      .select("flashcard_id, source_type")
+      .eq("flashcard_id", id)
+      .eq("user_id", userId)
+      .single();
+
+    if (fetchError || !existing) {
+      if (fetchError) {
+        console.error("[FlashcardService] Failed to fetch flashcard", {
+          flashcard_id: id,
+          userId,
+          error: fetchError.message,
+          errorDetails: fetchError,
+          errorCode: fetchError.code,
+          errorHint: fetchError.hint,
+        });
+      }
+      throw new NotFoundError("Nie znaleziono fiszki");
+    }
+
+    // 2. Determine new source_type
+    const newSourceType =
+      existing.source_type === "ai" ? "ai-edited" : existing.source_type;
+
+    // 3. Build update object
+    const updateData = {
+      front: data.front,
+      back: data.back,
+      source_type: newSourceType,
+    };
+
+    // 4. Execute UPDATE
+    const { data: updated, error: updateError } = await this.supabase
+      .from("flashcards")
+      .update(updateData)
+      .eq("flashcard_id", id)
+      .eq("user_id", userId)
+      .select("flashcard_id, front, back, source_type")
+      .single();
+
+    if (updateError || !updated) {
+      console.error("[FlashcardService] Failed to update flashcard", {
+        flashcard_id: id,
+        userId,
+        updateData,
+        error: updateError?.message,
+        errorDetails: updateError,
+        errorCode: updateError?.code,
+        errorHint: updateError?.hint,
+      });
+      throw new Error("Nie udało się zaktualizować fiszki");
+    }
+
+    // 5. Map to DTO
+    return {
+      id: updated.flashcard_id,
+      front: updated.front,
+      back: updated.back,
+      source_type: updated.source_type,
+    };
   }
 }
